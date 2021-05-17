@@ -1,0 +1,88 @@
+{
+  "tests": [
+    {
+      "name": "NonExistingEndpointTest",
+      "run": "mvn -B --quiet test -Dtest=efs.task.todoapp.autograding.NonExistingEndpointTest",
+      "output": "",
+      "comparison": "exact",
+      "points": 10
+    },
+    {
+      "name": "UserEndpointTest - shouldReturnBadRequestStatus",
+      "run": "mvn -B --quiet test -Dtest=efs.task.todoapp.autograding.UserEndpointTest#shouldReturnBadRequestStatus",
+      "output": "",
+      "comparison": "exact",
+      "points": 50
+    },
+    {
+      "name": "UserEndpointTest - shouldReturnCreatedStatus",
+      "run": "mvn -B --quiet test -Dtest=efs.task.todoapp.autograding.UserEndpointTest#shouldReturnCreatedStatus",
+      "output": "",
+      "comparison": "exact",
+      "points": 10
+    },
+    {
+      "name": "TaskEndpointTest - shouldReturnBadRequestStatus",
+      "run": "mvn -B --quiet test -Dtest=efs.task.todoapp.autograding.TaskEndpointTest#shouldReturnBadRequestStatus",
+      "output": "",
+      "comparison": "exact",
+      "points": 270
+    },
+    {
+      "name": "TaskEndpointTest - shouldReturnUnauthorizedStatus",
+      "run": "mvn -B --quiet test -Dtest=efs.task.todoapp.autograding.TaskEndpointTest#shouldReturnUnauthorizedStatus",
+      "output": "",
+      "comparison": "exact",
+      "points": 100
+    },
+    {
+      "name": "TaskEndpointTest - shouldCreateTask",
+      "run": "mvn -B --quiet test -Dtest=efs.task.todoapp.autograding.TaskEndpointTest#shouldCreateTask",
+      "output": "",
+      "comparison": "exact",
+      "points": 10
+    },
+    {
+      "name": "TaskEndpointTest - shouldReturnAllTasksForUser",
+      "run": "mvn -B --quiet test -Dtest=efs.task.todoapp.autograding.TaskEndpointTest#shouldReturnAllTasksForUser",
+      "output": "",
+      "comparison": "exact",
+      "points": 10
+    },
+    {
+      "name": "TaskEndpointTest - shouldReturnTask",
+      "run": "mvn -B --quiet test -Dtest=efs.task.todoapp.autograding.TaskEndpointTest#shouldReturnTask",
+      "output": "",
+      "comparison": "exact",
+      "points": 10
+    },
+    {
+      "name": "TaskEndpointTest - shouldReturnNotFound",
+      "run": "mvn -B --quiet test -Dtest=efs.task.todoapp.autograding.TaskEndpointTest#shouldReturnNotFound",
+      "output": "",
+      "comparison": "exact",
+      "points": 30
+    },
+    {
+      "name": "TaskEndpointTest - shouldReturnForbiddenStatus",
+      "run": "mvn -B --quiet test -Dtest=efs.task.todoapp.autograding.TaskEndpointTest#shouldReturnForbiddenStatus",
+      "output": "",
+      "comparison": "exact",
+      "points": 30
+    },
+    {
+      "name": "TaskEndpointTest - shouldUpdateTask",
+      "run": "mvn -B --quiet test -Dtest=efs.task.todoapp.autograding.TaskEndpointTest#shouldUpdateTask",
+      "output": "",
+      "comparison": "exact",
+      "points": 10
+    },
+    {
+      "name": "TaskEndpointTest - shouldDeleteTask",
+      "run": "mvn -B --quiet test -Dtest=efs.task.todoapp.autograding.TaskEndpointTest#shouldDeleteTask",
+      "output": "",
+      "comparison": "exact",
+      "points": 10
+    }
+  ]
+}

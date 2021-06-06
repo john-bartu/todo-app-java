@@ -5,10 +5,10 @@ import com.google.gson.annotations.Expose;
 import java.util.UUID;
 
 public class TaskEntity {
-    UUID id;
-    String description;
-
     @Expose(deserialize = false)
+    UUID id;
+
+    String description;
     String due;
 
     public TaskEntity(String description, String due) {

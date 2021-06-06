@@ -227,11 +227,13 @@ public class WebServerFactory {
                 return new HttpResponse(HttpCode.Unauthorized_401, "Authentication failed");
 
 
-            Pattern pattern = Pattern.compile("^\\\\task\\\\([A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{12})$");
+            Pattern pattern = Pattern.compile("^/todo/task/([A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{12})$");
             Matcher matcher = pattern.matcher(t.getRequestURI().toString());
+            LOGGER.info("Got task from: " + t.getRequestURI().toString());
 
             if (matcher.matches()) {
-                UUID uuid = UUID.fromString(matcher.group(0));
+                LOGGER.info("Got task UUID: " + matcher.group(1));
+                UUID uuid = UUID.fromString(matcher.group(1));
 
                 if (!database.TaskExists(uuid))
                     return new HttpResponse(HttpCode.NotFound_404, "Task with given uuid does not exists");
@@ -244,6 +246,8 @@ public class WebServerFactory {
 
                 return new HttpResponse(HttpCode.OK_200, taskStr);
 
+            } else {
+                LOGGER.info("No matches ");
             }
 
             return new HttpResponse(HttpCode.NotFound_404, "Uri not found");
@@ -262,11 +266,13 @@ public class WebServerFactory {
                 return new HttpResponse(HttpCode.Unauthorized_401, "Authentication failed");
 
 
-            Pattern pattern = Pattern.compile("^\\\\task\\\\([A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{12})$");
+            Pattern pattern = Pattern.compile("^/todo/task/([A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{12})$");
             Matcher matcher = pattern.matcher(t.getRequestURI().toString());
+            LOGGER.info("Got task from: " + t.getRequestURI().toString());
 
             if (matcher.matches()) {
-                UUID uuid = UUID.fromString(matcher.group(0));
+                LOGGER.info("Got task UUID: " + matcher.group(1));
+                UUID uuid = UUID.fromString(matcher.group(1));
 
                 if (!database.TaskExists(uuid))
                     return new HttpResponse(HttpCode.NotFound_404, "Task with given uuid does not exists");
@@ -307,11 +313,13 @@ public class WebServerFactory {
                 return new HttpResponse(HttpCode.Unauthorized_401, "Authentication failed");
 
 
-            Pattern pattern = Pattern.compile("^\\\\task\\\\([A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{12})$");
+            Pattern pattern = Pattern.compile("^/todo/task/([A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{12})$");
             Matcher matcher = pattern.matcher(t.getRequestURI().toString());
+            LOGGER.info("Got task from: " + t.getRequestURI().toString());
 
             if (matcher.matches()) {
-                UUID uuid = UUID.fromString(matcher.group(0));
+                LOGGER.info("Got task UUID: " + matcher.group(1));
+                UUID uuid = UUID.fromString(matcher.group(1));
 
                 if (!database.TaskExists(uuid))
                     return new HttpResponse(HttpCode.NotFound_404, "Task with given uuid does not exists");

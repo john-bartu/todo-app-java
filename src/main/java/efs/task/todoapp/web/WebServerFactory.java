@@ -106,12 +106,6 @@ public class WebServerFactory {
             InitMethodEndpoints(this);
         }
 
-        @MethodEndPoint(method = HttpMethode.GET)
-        static HttpResponse taskHandleGet() {
-            System.out.println("userHandleGet");
-            return new HttpResponse(HttpCode.OK, "USER GET");
-        }
-
         @MethodEndPoint(method = HttpMethode.POST)
         static HttpResponse userHandlePost() {
             System.out.println("userHandlePost");
@@ -129,12 +123,6 @@ public class WebServerFactory {
         static HttpResponse taskHandleGet() {
             System.out.println("taskHandleGet");
             return new HttpResponse(HttpCode.OK, "TASK GET");
-        }
-
-        @MethodEndPoint(method = HttpMethode.DELETE)
-        static HttpResponse taskHandleDelete() {
-            System.out.println("taskHandleDelete");
-            return new HttpResponse(HttpCode.OK, "TASK DELETE");
         }
 
         @MethodEndPoint(method = HttpMethode.POST)

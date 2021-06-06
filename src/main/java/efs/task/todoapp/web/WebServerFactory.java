@@ -81,16 +81,13 @@ public class WebServerFactory {
             LOGGER.info("[" + t.getRequestMethod() + "] " + t.getRequestURI());
 
             HttpMethode requestMethode = HttpMethode.valueOf(t.getRequestMethod());
-            HttpResponse httpResponse = defaultHandle();
+            HttpResponse httpResponse = defaultHandle(t);
 
             try {
                 if (methodHashMap.containsKey(requestMethode)) {
                     LOGGER.info("Method found " + methodHashMap.get(requestMethode).getName());
                     httpResponse = (HttpResponse) methodHashMap.get(requestMethode).invoke(null);
-                } else {
-                    httpResponse = defaultHandle();
                 }
-
             } catch (IllegalAccessException | InvocationTargetException e) {
                 e.printStackTrace();
             }
@@ -102,8 +99,12 @@ public class WebServerFactory {
 
         }
 
-        HttpResponse defaultHandle() {
-            return new HttpResponse();
+        HttpResponse defaultHandle(HttpExchange t) {
+            LOGGER.warning("[Handler not found]\n" +
+                    "URI: " + t.getRequestURI() + "\n" +
+                    "HEADER: " + t.getRequestHeaders());
+
+            return new HttpResponse(HttpCode.NotFound, "For URI: + " + t.getRequestURI());
         }
 
     }
@@ -115,7 +116,7 @@ public class WebServerFactory {
         }
 
         @MethodEndPoint(method = HttpMethode.POST)
-        static HttpResponse userHandlePost() {
+        static HttpResponse userHandlePost(HttpExchange t) {
             return new HttpResponse(HttpCode.OK, "USER POST");
         }
     }
@@ -127,12 +128,12 @@ public class WebServerFactory {
         }
 
         @MethodEndPoint(method = HttpMethode.GET)
-        static HttpResponse taskHandleGet() {
+        static HttpResponse taskHandleGet(HttpExchange t) {
             return new HttpResponse(HttpCode.OK, "TASK GET");
         }
 
         @MethodEndPoint(method = HttpMethode.POST)
-        static HttpResponse taskHandlePost() {
+        static HttpResponse taskHandlePost(HttpExchange t) {
             return new HttpResponse(HttpCode.OK, "TASK POST");
         }
     }
@@ -146,17 +147,17 @@ public class WebServerFactory {
 
 
         @MethodEndPoint(method = HttpMethode.GET)
-        static HttpResponse taskHandleGet() {
+        static HttpResponse taskHandleGet(HttpExchange t) {
             return new HttpResponse(HttpCode.OK, "TASK/ GET");
         }
 
         @MethodEndPoint(method = HttpMethode.PUT)
-        static HttpResponse taskHandlePut() {
+        static HttpResponse taskHandlePut(HttpExchange t) {
             return new HttpResponse(HttpCode.OK, "TASK/ PUT");
         }
 
         @MethodEndPoint(method = HttpMethode.DELETE)
-        static HttpResponse taskHandleDelete() {
+        static HttpResponse taskHandleDelete(HttpExchange t) {
             return new HttpResponse(HttpCode.OK, "TASK/ DELETE");
         }
     }

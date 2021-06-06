@@ -4,9 +4,7 @@ import efs.task.todoapp.repository.TaskRepository;
 import efs.task.todoapp.repository.UserEntity;
 import efs.task.todoapp.repository.UserRepository;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class ToDoService {
     private final UserRepository userRepository;
@@ -27,11 +25,19 @@ public class ToDoService {
     }
 
     public boolean AddUser(UserEntity userEntity) {
-        if (userRepository.query(userEntity.getUsername()) != null) {
-            return (userRepository.save(userEntity).equals(userEntity.getUsername()));
+        if (userRepository.query(userEntity.getUsername()) == null) {
+            String addedUser = userRepository.save(userEntity);
+            return (addedUser.equals(userEntity.getUsername()));
         } else {
             return false;
         }
+    }
+
+
+    public boolean Authenticate(String token) {
+        List<UserEntity> foundUsers = userRepository.query(userEntity -> userEntity.encode().equals(token));
+
+        return foundUsers.size() == 1;
 
     }
 }

@@ -15,6 +15,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
@@ -84,8 +85,9 @@ public class WebServerFactory {
         public void handle(HttpExchange t) throws IOException {
             LOGGER.info("[" + t.getRequestMethod() + "]\n" +
                     "URI: " + t.getRequestURI() + "\n" +
-                    "HEADERS: " + t.getRequestHeaders().keySet() + "\n" +
-                    "BODY: " + t.getResponseBody().toString());
+                    "HEADERS: " + t.getRequestHeaders().keySet() + "\n"
+//                    + "BODY: " + new String(t.getRequestBody().readAllBytes())
+            );
 
             HttpMethode requestMethode = HttpMethode.valueOf(t.getRequestMethod());
             HttpResponse httpResponse = defaultHandle(t);
@@ -100,8 +102,7 @@ public class WebServerFactory {
             }
 
             LOGGER.info("[" + httpResponse.httpCode.rCode + "]: " + httpResponse.httpResponse);
-
-            t.sendResponseHeaders(httpResponse.httpCode.rCode, httpResponse.httpResponse.length());
+            t.sendResponseHeaders(httpResponse.httpCode.rCode, httpResponse.getSize());
             OutputStream os = t.getResponseBody();
             os.write(httpResponse.httpResponse.getBytes());
             os.close();
@@ -121,23 +122,25 @@ public class WebServerFactory {
         }
 
         @MethodEndPoint(method = HttpMethode.POST)
-        static HttpResponse userHandlePost(HttpExchange t) {
+        static HttpResponse userHandlePost(HttpExchange t) throws IOException {
 
             try {
-                UserEntity newUser = new Gson().fromJson(t.getResponseBody().toString(), UserEntity.class);
+                UserEntity newUser = new Gson().fromJson(new String(t.getRequestBody().readAllBytes()), UserEntity.class);
 
-                if (!newUser.getUsername().equals("") && !newUser.getPassword().equals("")) {
-                    if (database.AddUser(newUser)) {
-                        return new HttpResponse(HttpCode.Created, "Użytkownik dodany.");
-                    } else {
-                        return new HttpResponse(HttpCode.Conflict, "Użytkownik o podanej nazwie już istnieje.");
+                LOGGER.info("Received user: "+ new Gson().toJson(newUser));
+                if (newUser != null)
+                    if (!newUser.getUsername().equals("") && !newUser.getPassword().equals("")) {
+                        if (database.AddUser(newUser)) {
+                            return new HttpResponse(HttpCode.Created, "Użytkownik dodany.");
+                        } else {
+                            return new HttpResponse(HttpCode.Conflict, "Użytkownik o podanej nazwie juz istnieje.");
+                        }
                     }
-                }
 
             } catch (JsonSyntaxException e) {
                 LOGGER.warning(e.getMessage());
             }
-            return new HttpResponse(HttpCode.BadRequest, "Brak wymaganej treści.");
+            return new HttpResponse(HttpCode.BadRequest, "Brak wymaganej tresśi.");
 
         }
     }

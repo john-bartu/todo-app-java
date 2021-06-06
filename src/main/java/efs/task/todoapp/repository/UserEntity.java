@@ -1,5 +1,6 @@
 package efs.task.todoapp.repository;
 
+import java.util.Base64;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -38,5 +39,9 @@ public class UserEntity {
     @Override
     public int hashCode() {
         return username != null ? username.hashCode() : 0;
+    }
+
+    public String encode() {
+        return Base64.getEncoder().encodeToString((getUsername()).getBytes()) + ":" + Base64.getEncoder().encodeToString((getPassword()).getBytes());
     }
 }

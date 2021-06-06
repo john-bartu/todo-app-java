@@ -13,7 +13,7 @@ class HttpResponse {
 
     public HttpResponse() {
         httpResponse = "Error 404 - Default Response";
-        httpCode = HttpCode.NotFound;
+        httpCode = HttpCode.NotFound_404;
     }
 
     public int getSize() {

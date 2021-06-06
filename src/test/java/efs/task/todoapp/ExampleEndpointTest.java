@@ -9,14 +9,11 @@ import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
-import java.nio.ByteBuffer;
-import java.util.concurrent.Flow;
 
 import static java.net.http.HttpResponse.BodyHandlers.ofString;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -46,7 +43,7 @@ class ExampleEndpointTest {
         var httpResponse = httpClient.send(httpRequest, ofString());
 
         //then
-        assertThat(httpResponse.statusCode()).as("Response status code").isEqualTo(HttpCode.NotFound.getrCode());
+        assertThat(httpResponse.statusCode()).as("Response status code").isEqualTo(HttpCode.NotFound_404.getrCode());
     }
 
     @ParameterizedTest(name = "{index}: path={0}, methode={1}")

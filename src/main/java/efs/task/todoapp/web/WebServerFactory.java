@@ -81,7 +81,7 @@ public class WebServerFactory {
         public void handle(HttpExchange t) throws IOException {
             LOGGER.info("[" + t.getRequestMethod() + "]\n" +
                     "URI: " + t.getRequestURI() + "\n" +
-                    "HEADER: " + t.getResponseHeaders().keySet());
+                    "HEADERS: " + t.getRequestHeaders());
 
             HttpMethode requestMethode = HttpMethode.valueOf(t.getRequestMethod());
             HttpResponse httpResponse = defaultHandle(t);

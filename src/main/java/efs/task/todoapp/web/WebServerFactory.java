@@ -78,7 +78,9 @@ public class WebServerFactory {
 
         @Override
         public void handle(HttpExchange t) throws IOException {
-            LOGGER.info("[" + t.getRequestMethod() + "] " + t.getRequestURI());
+            LOGGER.info("[" + t.getRequestMethod() + "]\n" +
+                    "URI: " + t.getRequestURI() + "\n" +
+                    "HEADER: " + t.getResponseHeaders().keySet());
 
             HttpMethode requestMethode = HttpMethode.valueOf(t.getRequestMethod());
             HttpResponse httpResponse = defaultHandle(t);
@@ -86,12 +88,14 @@ public class WebServerFactory {
             try {
                 if (methodHashMap.containsKey(requestMethode)) {
                     LOGGER.info("Method found " + methodHashMap.get(requestMethode).getName());
-                    httpResponse = (HttpResponse) methodHashMap.get(requestMethode).invoke(null);
+                    httpResponse = (HttpResponse) methodHashMap.get(requestMethode).invoke(null, t);
                 }
             } catch (IllegalAccessException | InvocationTargetException e) {
                 e.printStackTrace();
             }
+
             LOGGER.info("[" + httpResponse.httpCode.rCode + "]: " + httpResponse.httpResponse);
+
             t.sendResponseHeaders(httpResponse.httpCode.rCode, httpResponse.httpResponse.length());
             OutputStream os = t.getResponseBody();
             os.write(httpResponse.httpResponse.getBytes());
@@ -100,11 +104,7 @@ public class WebServerFactory {
         }
 
         HttpResponse defaultHandle(HttpExchange t) {
-            LOGGER.warning("[Handler not found]\n" +
-                    "URI: " + t.getRequestURI() + "\n" +
-                    "HEADER: " + t.getRequestHeaders());
-
-            return new HttpResponse(HttpCode.NotFound, "For URI: + " + t.getRequestURI());
+            return new HttpResponse(HttpCode.NotFound, "For URI: " + t.getRequestURI());
         }
 
     }

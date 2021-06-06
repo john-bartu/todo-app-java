@@ -4,7 +4,6 @@ import efs.task.todoapp.repository.TaskEntity;
 import efs.task.todoapp.repository.TaskRepository;
 import efs.task.todoapp.repository.UserEntity;
 import efs.task.todoapp.repository.UserRepository;
-import efs.task.todoapp.web.WebServerFactory;
 
 import java.util.*;
 import java.util.logging.Logger;
@@ -51,7 +50,7 @@ public class ToDoService {
 
     public boolean AddTask(String username, TaskEntity newTask) {
         newTask.assignUUID();
-        LOGGER.info("Trying add task:\n for: " + username + "task: "+newTask.toString());
+        LOGGER.info("Trying add task:\n for: " + username + "task: " + newTask.toString());
 
         if (taskRepository.save(newTask) == null)
             return false;
@@ -69,29 +68,40 @@ public class ToDoService {
             if (s.equals(username)) userTasks.add(taskRepository.query(uuid));
         });
 
+        LOGGER.info("Getting tasks:\n for: " + username + "\n Tasks:" +
+                Arrays.toString(userTasks.toArray()));
         return userTasks;
 
     }
 
     public boolean TaskExists(UUID uuid) {
+        boolean check = taskRepository.query(uuid) != null;
+        LOGGER.info("Checking if task: { " + uuid + " } exists ?" + check);
         return taskRepository.query(uuid) != null;
     }
 
     public boolean TaskBelongsToUser(String username, UUID uuid) {
-        return taskUserMap.get(uuid).equals(username);
+        boolean check = taskUserMap.get(uuid).equals(username);
+        ;
+        LOGGER.info("Checking if task: { " + uuid + " } belongs to user: {" + username + "} ?" + check);
+        return check;
     }
 
     public TaskEntity GetTask(UUID uuid) {
-        return taskRepository.query(uuid);
+        TaskEntity task = taskRepository.query(uuid);
+        LOGGER.info("Getting task: " + task.toString());
+        return task;
     }
 
     public void removeTask(UUID uuid) {
         taskRepository.delete(uuid);
+        LOGGER.info("Removing task {" + uuid + "}");
         taskUserMap.remove(uuid);
 
     }
 
     public boolean UpdateTask(TaskEntity newTask) {
+        LOGGER.info("Updating task\n FROM: {" + taskRepository.query(newTask.getId()).toString() + "\n} TO: {" + newTask.toString() + "}");
         taskRepository.query(newTask.getId()).setDescription(newTask.getDescription());
         taskRepository.query(newTask.getId()).setDue(newTask.getDue());
         return true;

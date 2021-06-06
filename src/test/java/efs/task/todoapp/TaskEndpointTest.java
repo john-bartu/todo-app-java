@@ -75,6 +75,54 @@ class TaskEndpointTest {
 
     @Test
     @Timeout(1)
+    void shouldNotGetTaskList_NoUser() throws IOException, InterruptedException {
+
+        String username = "this";
+        String password = "not_exist";
+
+
+        StringBuilder token = new StringBuilder();
+        token.append(Base64.getEncoder().encodeToString(username.getBytes()));
+        token.append(":");
+        token.append(Base64.getEncoder().encodeToString(password.getBytes()));
+
+        System.out.println("HASH: " + token);
+
+
+        var listTaskRequest = HttpRequest.newBuilder()
+                .uri(URI.create(TODO_APP_PATH + "/task"))
+                .header("Content-Type", "application/json")
+                .header("Auth", token.toString())
+                .GET()
+                .build();
+
+        //when
+        var httpResponseTask = httpClient.send(listTaskRequest, ofString());
+
+        //then
+        assertThat(httpResponseTask.statusCode()).as("Response create task for user").isEqualTo(HttpCode.Unauthorized_401.getrCode());
+    }
+
+    @Test
+    @Timeout(1)
+    void shouldNotGetTaskList_NoHeader() throws IOException, InterruptedException {
+
+        var listTaskRequest = HttpRequest.newBuilder()
+                .uri(URI.create(TODO_APP_PATH + "/task"))
+                .header("Content-Type", "application/json")
+                .GET()
+                .build();
+
+        //when
+        var httpResponseTask = httpClient.send(listTaskRequest, ofString());
+
+        //then
+        assertThat(httpResponseTask.statusCode()).as("Response create task for user").isEqualTo(HttpCode.BadRequest_400.getrCode());
+    }
+
+
+    @Test
+    @Timeout(1)
     void shouldGetTaskList() throws IOException, InterruptedException {
 
         String username = "user";
@@ -101,7 +149,5 @@ class TaskEndpointTest {
 
         //then
         assertThat(httpResponseTask.statusCode()).as("Response create task for user").isEqualTo(HttpCode.OK_200.getrCode());
-
-
     }
 }

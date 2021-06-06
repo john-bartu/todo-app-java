@@ -50,10 +50,10 @@ class ExampleEndpointTest {
     }
 
     @ParameterizedTest(name = "{index}: path={0}, methode={1}")
-    @CsvSource({"/todo/user,POST", "/todo/task,POST", "/todo/task,GET"
-            , "/todo/task/1,GET", "/todo/task/1,PUT", "/todo/task/1,DELETE"})
+    @CsvSource({"/todo/user,POST,400", "/todo/task,POST,200", "/todo/task,GET,200"
+            , "/todo/task/1,GET,200", "/todo/task/1,PUT,200", "/todo/task/1,DELETE,200"})
     @Timeout(1)
-    void shouldReturnOKStatusForPaths(String path, String str_methode) throws IOException, InterruptedException {
+    void shouldReturnOKStatusForPaths(String path, String str_methode, int rCode) throws IOException, InterruptedException {
         HttpMethode methode = HttpMethode.valueOf(str_methode);
 
         HttpRequest httpRequest;
@@ -107,7 +107,7 @@ class ExampleEndpointTest {
 
         System.out.println(httpResponse.body());
         //then
-        assertThat(httpResponse.statusCode()).as("Response status code").isEqualTo(HttpCode.OK.getrCode());
+        assertThat(httpResponse.statusCode()).as("Response status code").isEqualTo(rCode);
 
 
     }

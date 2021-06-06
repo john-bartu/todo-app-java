@@ -1,10 +1,14 @@
 package efs.task.todoapp.repository;
 
+import com.google.gson.annotations.Expose;
+
 import java.util.UUID;
 
 public class TaskEntity {
     UUID id;
     String description;
+
+    @Expose(deserialize = false)
     String due;
 
     public TaskEntity(String description, String due) {

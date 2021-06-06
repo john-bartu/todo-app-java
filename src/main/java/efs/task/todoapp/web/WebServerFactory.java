@@ -131,16 +131,16 @@ public class WebServerFactory {
                 if (newUser != null)
                     if (!newUser.getUsername().equals("") && !newUser.getPassword().equals("")) {
                         if (database.AddUser(newUser)) {
-                            return new HttpResponse(HttpCode.Created, "Użytkownik dodany.");
+                            return new HttpResponse(HttpCode.Created, "Uzytkownik dodany.");
                         } else {
-                            return new HttpResponse(HttpCode.Conflict, "Użytkownik o podanej nazwie juz istnieje.");
+                            return new HttpResponse(HttpCode.Conflict, "Uzytkownik o podanej nazwie juz istnieje.");
                         }
                     }
 
             } catch (JsonSyntaxException e) {
                 LOGGER.warning(e.getMessage());
             }
-            return new HttpResponse(HttpCode.BadRequest, "Brak wymaganej tresśi.");
+            return new HttpResponse(HttpCode.BadRequest, "Brak wymaganej tresci.");
 
         }
     }

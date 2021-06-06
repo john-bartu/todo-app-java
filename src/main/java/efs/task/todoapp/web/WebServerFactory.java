@@ -101,7 +101,7 @@ public class WebServerFactory {
                 e.printStackTrace();
             }
 
-            LOGGER.info("[" + httpResponse.httpCode.rCode + "]: " + httpResponse.httpResponse);
+            LOGGER.info("SERVER:\n[" + httpResponse.httpCode.rCode + "]: " + httpResponse.httpResponse);
             t.sendResponseHeaders(httpResponse.httpCode.rCode, httpResponse.getSize());
             OutputStream os = t.getResponseBody();
             os.write(httpResponse.httpResponse.getBytes());
@@ -131,16 +131,16 @@ public class WebServerFactory {
                 if (newUser != null)
                     if (!newUser.getUsername().equals("") && !newUser.getPassword().equals("")) {
                         if (database.AddUser(newUser)) {
-                            return new HttpResponse(HttpCode.Created_201, "Uzytkownik dodany.");
+                            return new HttpResponse(HttpCode.Created_201, "User added");
                         } else {
-                            return new HttpResponse(HttpCode.Conflict_409, "Uzytkownik o podanej nazwie juz istnieje.");
+                            return new HttpResponse(HttpCode.Conflict_409, "User with given login exists");
                         }
                     }
 
             } catch (JsonSyntaxException | IOException e) {
                 LOGGER.warning(e.getMessage());
             }
-            return new HttpResponse(HttpCode.BadRequest_400, "Brak wymaganej tresci.");
+            return new HttpResponse(HttpCode.BadRequest_400, "No required fields for user");
 
         }
     }
@@ -153,9 +153,8 @@ public class WebServerFactory {
 
         @MethodEndPoint(method = HttpMethode.GET)
         static HttpResponse taskHandleGet(HttpExchange t) {
-
-
             String username = t.getRequestHeaders().getFirst("auth");
+
             if (username == null)
                 return new HttpResponse(HttpCode.BadRequest_400, "No auth header");
 
@@ -164,7 +163,6 @@ public class WebServerFactory {
             LOGGER.info("USER: " + username);
             if (username == null)
                 return new HttpResponse(HttpCode.Unauthorized_401, "Authentication failed");
-
 
 
             List<TaskEntity> taskEntities = database.GetTasks(username);
@@ -174,6 +172,7 @@ public class WebServerFactory {
         @MethodEndPoint(method = HttpMethode.POST)
         static HttpResponse taskHandlePost(HttpExchange t) {
             String username = t.getRequestHeaders().getFirst("auth");
+
             if (username == null)
                 return new HttpResponse(HttpCode.BadRequest_400, "No auth header");
 
@@ -182,7 +181,6 @@ public class WebServerFactory {
             LOGGER.info("USER: " + username);
             if (username == null)
                 return new HttpResponse(HttpCode.Unauthorized_401, "Authentication failed");
-
 
 
             try {
@@ -224,7 +222,6 @@ public class WebServerFactory {
             LOGGER.info("USER: " + username);
             if (username == null)
                 return new HttpResponse(HttpCode.Unauthorized_401, "Authentication failed");
-
 
 
             Pattern pattern = Pattern.compile("^\\\\task\\\\([A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{12})$");

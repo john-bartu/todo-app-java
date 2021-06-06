@@ -1,0 +1,7 @@
+jsonData|code
+{"username": "janKowalski1", "password": "am!sK#1231"}|201
+{"username": "", "password": "am!sK#1232"}|400
+{"username": "janKowalski3", "password": ""}|400
+{"username": "janKowalski4", "password": "am!sK#1234"}|201
+{"username": "test", "password": "test"}|201
+{"username": "test", "password": "test"}|409

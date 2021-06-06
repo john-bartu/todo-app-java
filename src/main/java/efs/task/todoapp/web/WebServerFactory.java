@@ -159,6 +159,9 @@ public class WebServerFactory {
             if (username == null || username.equals(""))
                 return new HttpResponse(HttpCode.BadRequest_400, "No auth header");
 
+            if (username.split("[\\s:]+").length != 2)
+                return new HttpResponse(HttpCode.BadRequest_400, "No auth header");
+
 
             username = database.Authenticate(username);
             LOGGER.info("USER: " + username);
@@ -174,7 +177,10 @@ public class WebServerFactory {
         static HttpResponse taskHandlePost(HttpExchange t) {
             String username = t.getRequestHeaders().getFirst("auth");
 
-            if (username == null)
+            if (username == null || username.equals(""))
+                return new HttpResponse(HttpCode.BadRequest_400, "No auth header");
+
+            if (username.split("[\\s:]+").length != 2)
                 return new HttpResponse(HttpCode.BadRequest_400, "No auth header");
 
 
@@ -217,7 +223,10 @@ public class WebServerFactory {
         static HttpResponse taskHandleGet(HttpExchange t) {
 
             String username = t.getRequestHeaders().getFirst("auth");
-            if (username == null)
+            if (username == null || username.equals(""))
+                return new HttpResponse(HttpCode.BadRequest_400, "No auth header");
+
+            if (username.split("[\\s:]+").length != 2)
                 return new HttpResponse(HttpCode.BadRequest_400, "No auth header");
 
 
@@ -256,9 +265,11 @@ public class WebServerFactory {
         @MethodEndPoint(method = HttpMethode.PUT)
         static HttpResponse taskHandlePut(HttpExchange t) {
             String username = t.getRequestHeaders().getFirst("auth");
-            if (username == null)
+            if (username == null || username.equals(""))
                 return new HttpResponse(HttpCode.BadRequest_400, "No auth header");
 
+            if (username.split("[\\s:]+").length != 2)
+                return new HttpResponse(HttpCode.BadRequest_400, "Bad auth header");
 
             username = database.Authenticate(username);
             LOGGER.info("USER: " + username);
@@ -303,7 +314,10 @@ public class WebServerFactory {
         @MethodEndPoint(method = HttpMethode.DELETE)
         static HttpResponse taskHandleDelete(HttpExchange t) {
             String username = t.getRequestHeaders().getFirst("auth");
-            if (username == null)
+            if (username == null || username.equals(""))
+                return new HttpResponse(HttpCode.BadRequest_400, "No auth header");
+
+            if (username.split("[\\s:]+").length != 2)
                 return new HttpResponse(HttpCode.BadRequest_400, "No auth header");
 
 

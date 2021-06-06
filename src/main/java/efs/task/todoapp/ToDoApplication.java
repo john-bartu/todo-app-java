@@ -18,8 +18,8 @@ public class ToDoApplication {
         var server = application.createServer();
         server.start();
 
-        LOGGER.info("ToDoApplication's server started ...");
-        LOGGER.info("server Started at  http://localhost:8080");
+        LOGGER.info("ToDoApplication's server started ...\t" +
+                "started at: http://localhost:8080");
 
     }
 

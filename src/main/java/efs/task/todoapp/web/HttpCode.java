@@ -1,6 +1,6 @@
 package efs.task.todoapp.web;
 
-enum HttpCode {
+public enum HttpCode {
     OK(200),
     BadRequest(400),
     Unauthorized(401),
@@ -11,5 +11,9 @@ enum HttpCode {
 
     HttpCode(int code) {
         rCode = code;
+    }
+
+    public int getrCode() {
+        return rCode;
     }
 }

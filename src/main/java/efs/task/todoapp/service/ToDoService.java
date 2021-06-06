@@ -4,10 +4,14 @@ import efs.task.todoapp.repository.TaskEntity;
 import efs.task.todoapp.repository.TaskRepository;
 import efs.task.todoapp.repository.UserEntity;
 import efs.task.todoapp.repository.UserRepository;
+import efs.task.todoapp.web.WebServerFactory;
 
 import java.util.*;
+import java.util.logging.Logger;
 
 public class ToDoService {
+    private static final Logger LOGGER = Logger.getLogger(ToDoService.class.getName());
+
     private final UserRepository userRepository;
     private final TaskRepository taskRepository;
 
@@ -36,15 +40,19 @@ public class ToDoService {
 
 
     public String Authenticate(String token) {
-        List<UserEntity> foundUsers = userRepository.query(userEntity -> userEntity.encode().equals(token));
-        if (foundUsers.size() > 0)
+        List<UserEntity> foundUsers = userRepository.query(ue -> ue.encode().equals(token));
+
+        if (foundUsers.size() > 0) {
             return foundUsers.get(0).getUsername();
-        else
+        } else
             return null;
 
     }
 
     public boolean AddTask(String username, TaskEntity newTask) {
+        newTask.assignUUID();
+        LOGGER.info("Trying add task:\n for: " + username + "task: "+newTask.toString());
+
         if (taskRepository.save(newTask) == null)
             return false;
 

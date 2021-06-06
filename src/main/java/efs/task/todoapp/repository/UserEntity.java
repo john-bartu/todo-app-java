@@ -1,8 +1,6 @@
 package efs.task.todoapp.repository;
 
 import java.util.Base64;
-import java.util.Objects;
-import java.util.UUID;
 
 public class UserEntity {
     String username;
@@ -42,6 +40,11 @@ public class UserEntity {
     }
 
     public String encode() {
-        return Base64.getEncoder().encodeToString((getUsername()).getBytes()) + ":" + Base64.getEncoder().encodeToString((getPassword()).getBytes());
+        StringBuilder token = new StringBuilder();
+        token.append(Base64.getEncoder().encodeToString(username.getBytes()));
+        token.append(":");
+        token.append(Base64.getEncoder().encodeToString(password.getBytes()));
+
+        return token.toString();
     }
 }

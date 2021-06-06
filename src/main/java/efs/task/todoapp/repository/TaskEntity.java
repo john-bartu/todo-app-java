@@ -51,4 +51,17 @@ public class TaskEntity {
     public int hashCode() {
         return id.hashCode();
     }
+
+    @Override
+    public String toString() {
+        return "TaskEntity{" +
+                "id=" + id +
+                ", description='" + description + '\'' +
+                ", due='" + due + '\'' +
+                '}';
+    }
+
+    public void assignUUID() {
+        id = UUID.randomUUID();
+    }
 }

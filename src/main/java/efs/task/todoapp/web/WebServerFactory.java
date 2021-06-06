@@ -167,7 +167,7 @@ public class WebServerFactory {
 
 
             List<TaskEntity> taskEntities = database.GetTasks(username);
-            return new HttpResponse(HttpCode.BadRequest_400, new Gson().toJson(taskEntities));
+            return new HttpResponse(HttpCode.OK_200, new Gson().toJson(taskEntities));
         }
 
         @MethodEndPoint(method = HttpMethode.POST)
@@ -191,7 +191,9 @@ public class WebServerFactory {
 
                 if (newTask != null)
                     if (!newTask.getDescription().equals("")) {
+
                         if (database.AddTask(username, newTask)) {
+
                             return new HttpResponse(HttpCode.Created_201, "Task added.");
                         }
                     }

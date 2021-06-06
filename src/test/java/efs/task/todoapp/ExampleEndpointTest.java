@@ -47,8 +47,14 @@ class ExampleEndpointTest {
     }
 
     @ParameterizedTest(name = "{index}: path={0}, methode={1}")
-    @CsvSource({"/todo/user,POST,400", "/todo/task,POST,200", "/todo/task,GET,200"
-            , "/todo/task/1,GET,200", "/todo/task/1,PUT,200", "/todo/task/1,DELETE,200"})
+    @CsvSource({
+            "/todo/user,POST,400",
+            "/todo/task,POST,200",
+            "/todo/task,GET,200",
+            "/todo/task/1,GET,200",
+            "/todo/task/1,PUT,200",
+            "/todo/task/1,DELETE,200"
+    })
     @Timeout(1)
     void shouldReturnOKStatusForPaths(String path, String str_methode, int rCode) throws IOException, InterruptedException {
         HttpMethode methode = HttpMethode.valueOf(str_methode);

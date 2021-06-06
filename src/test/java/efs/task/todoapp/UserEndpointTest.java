@@ -1,9 +1,7 @@
 package efs.task.todoapp;
 
 import efs.task.todoapp.util.ToDoServerExtension;
-import efs.task.todoapp.web.HttpCode;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -47,28 +45,6 @@ class UserEndpointTest {
         var httpResponse = httpClient.send(httpRequest, ofString());
         //then
         assertThat(httpResponse.statusCode()).as("Response status code").isEqualTo(code);
-
-
-    }
-
-    @Test()
-    @Timeout(1)
-    void testCreatingUser() throws IOException, InterruptedException {
-
-        HttpRequest httpRequest;
-
-        httpRequest = HttpRequest.newBuilder()
-                .uri(URI.create(TODO_APP_PATH + "/user"))
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString("{\"username\": \"janKowalski\", \"password\": \"am!sK#123\"}"))
-                .build();
-
-
-        System.out.println("PRZED: ");
-        var httpResponse = httpClient.send(httpRequest, ofString());
-        System.out.println("RECEIVED: " + httpResponse.body());
-        //then
-        assertThat(httpResponse.statusCode()).as("Response status code").isEqualTo(HttpCode.Created_201.getrCode());
 
 
     }

@@ -126,16 +126,18 @@ public class WebServerFactory {
             try {
                 UserEntity newUser = new Gson().fromJson(t.getResponseBody().toString(), UserEntity.class);
 
-                if(database.AddUser(newUser)){
-                    return new HttpResponse(HttpCode.Created, "Użytkownik dodany.");
-                }else{
-                    return new HttpResponse(HttpCode.Conflict, "Użytkownik o podanej nazwie już istnieje.");
+                if (!newUser.getUsername().equals("") && !newUser.getPassword().equals("")) {
+                    if (database.AddUser(newUser)) {
+                        return new HttpResponse(HttpCode.Created, "Użytkownik dodany.");
+                    } else {
+                        return new HttpResponse(HttpCode.Conflict, "Użytkownik o podanej nazwie już istnieje.");
+                    }
                 }
 
-            }catch (JsonSyntaxException e){
-                return new HttpResponse(HttpCode.BadRequest, "Brak wymaganej treści.");
+            } catch (JsonSyntaxException e) {
+                LOGGER.warning(e.getMessage());
             }
-
+            return new HttpResponse(HttpCode.BadRequest, "Brak wymaganej treści.");
 
         }
     }

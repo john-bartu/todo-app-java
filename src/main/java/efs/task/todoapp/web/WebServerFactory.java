@@ -129,7 +129,7 @@ public class WebServerFactory {
                 UserEntity newUser = new Gson().fromJson(new String(t.getRequestBody().readAllBytes()), UserEntity.class);
 
                 LOGGER.info("Received user: " + new Gson().toJson(newUser));
-                if (newUser != null)
+                if (newUser != null && newUser.getUsername() != null && newUser.getPassword() != null)
                     if (!newUser.getUsername().equals("") && !newUser.getPassword().equals("")) {
                         if (database.AddUser(newUser)) {
                             return new HttpResponse(HttpCode.Created_201, "User added");

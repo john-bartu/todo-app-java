@@ -4,6 +4,7 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import efs.task.todoapp.ToDoApplication;
+import efs.task.todoapp.service.ToDoService;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -17,7 +18,7 @@ import java.util.logging.Logger;
 
 public class WebServerFactory {
     private static final Logger LOGGER = Logger.getLogger(WebServerFactory.class.getName());
-
+    private static final ToDoService database = new ToDoService();
 
     public static HttpServer createServer() throws IOException {
         HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);

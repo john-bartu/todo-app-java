@@ -102,6 +102,7 @@ public class WebServerFactory {
             }
 
             LOGGER.info("SERVER:\n[" + httpResponse.httpCode.rCode + "]: " + httpResponse.httpResponse);
+
             t.sendResponseHeaders(httpResponse.httpCode.rCode, httpResponse.getSize());
             OutputStream os = t.getResponseBody();
             os.write(httpResponse.httpResponse.getBytes());
@@ -155,7 +156,7 @@ public class WebServerFactory {
         static HttpResponse taskHandleGet(HttpExchange t) {
             String username = t.getRequestHeaders().getFirst("auth");
 
-            if (username == null)
+            if (username == null || username.equals(""))
                 return new HttpResponse(HttpCode.BadRequest_400, "No auth header");
 
 

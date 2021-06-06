@@ -1,7 +1,5 @@
 package efs.task.todoapp.web;
 
-import java.nio.charset.StandardCharsets;
-
 class HttpResponse {
     String httpResponse;
     HttpCode httpCode;
@@ -17,6 +15,6 @@ class HttpResponse {
     }
 
     public int getSize() {
-        return httpResponse.getBytes(StandardCharsets.UTF_8).length;
+        return httpResponse.getBytes().length;
     }
 }

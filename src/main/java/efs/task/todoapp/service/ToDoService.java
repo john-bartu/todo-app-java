@@ -1,6 +1,7 @@
 package efs.task.todoapp.service;
 
 import efs.task.todoapp.repository.TaskRepository;
+import efs.task.todoapp.repository.UserEntity;
 import efs.task.todoapp.repository.UserRepository;
 
 import java.util.HashMap;
@@ -23,5 +24,14 @@ public class ToDoService {
         this.userRepository = new UserRepository();
         this.taskRepository = new TaskRepository();
         this.userTaskMap = new HashMap<>();
+    }
+
+    public boolean AddUser(UserEntity userEntity) {
+        if (userRepository.query(userEntity.getUsername()) != null) {
+            return (userRepository.save(userEntity).equals(userEntity.getUsername()));
+        } else {
+            return false;
+        }
+
     }
 }

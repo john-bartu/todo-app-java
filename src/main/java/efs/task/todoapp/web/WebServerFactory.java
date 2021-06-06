@@ -1,9 +1,12 @@
 package efs.task.todoapp.web;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import efs.task.todoapp.ToDoApplication;
+import efs.task.todoapp.repository.UserEntity;
 import efs.task.todoapp.service.ToDoService;
 
 import java.io.IOException;
@@ -81,7 +84,8 @@ public class WebServerFactory {
         public void handle(HttpExchange t) throws IOException {
             LOGGER.info("[" + t.getRequestMethod() + "]\n" +
                     "URI: " + t.getRequestURI() + "\n" +
-                    "HEADERS: " + t.getRequestHeaders());
+                    "HEADERS: " + t.getRequestHeaders().keySet() + "\n" +
+                    "BODY: " + t.getResponseBody().toString());
 
             HttpMethode requestMethode = HttpMethode.valueOf(t.getRequestMethod());
             HttpResponse httpResponse = defaultHandle(t);
@@ -118,7 +122,21 @@ public class WebServerFactory {
 
         @MethodEndPoint(method = HttpMethode.POST)
         static HttpResponse userHandlePost(HttpExchange t) {
-            return new HttpResponse(HttpCode.OK, "USER POST");
+
+            try {
+                UserEntity newUser = new Gson().fromJson(t.getResponseBody().toString(), UserEntity.class);
+
+                if(database.AddUser(newUser)){
+                    return new HttpResponse(HttpCode.Created, "Użytkownik dodany.");
+                }else{
+                    return new HttpResponse(HttpCode.Conflict, "Użytkownik o podanej nazwie już istnieje.");
+                }
+
+            }catch (JsonSyntaxException e){
+                return new HttpResponse(HttpCode.BadRequest, "Brak wymaganej treści.");
+            }
+
+
         }
     }
 

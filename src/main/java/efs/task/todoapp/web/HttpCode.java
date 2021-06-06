@@ -6,7 +6,8 @@ public enum HttpCode {
     Unauthorized(401),
     Forbidden(403),
     NotFound(404),
-    Conflict(409);
+    Conflict(409),
+    Created(201);
     int rCode;
 
     HttpCode(int code) {

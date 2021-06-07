@@ -107,10 +107,10 @@ public class ToDoService {
 
     }
 
-    public boolean UpdateTask(TaskEntity newTask) {
-        LOGGER.info("Updating task\n FROM: {" + taskRepository.query(newTask.getId()).toString() + "\n} TO: {" + newTask.toString() + "}");
+    public TaskEntity UpdateTask(TaskEntity newTask) {
+        LOGGER.info("Updating task\n FROM: {" + taskRepository.query(newTask.getId()).toString() + "\n} TO: {" + newTask + "}");
         taskRepository.query(newTask.getId()).setDescription(newTask.getDescription());
         taskRepository.query(newTask.getId()).setDue(newTask.getDue());
-        return true;
+        return taskRepository.query(newTask.getId());
     }
 }

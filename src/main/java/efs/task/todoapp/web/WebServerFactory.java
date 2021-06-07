@@ -84,20 +84,27 @@ public class WebServerFactory {
         }
 
         @Override
-        public void handle(HttpExchange t) throws IOException {
-            LOGGER.info("[" + t.getRequestMethod() + "]\n" +
-                            "URI: " + t.getRequestURI() + "\n"
-//                        + "HEADERS: " + t.getRequestHeaders().keySet() + "\n"
-//                    + "BODY: " + new String(t.getRequestBody().readAllBytes())
+        public void handle(HttpExchange httpExchange) throws IOException {
+
+            Request request = new Request(
+                    httpExchange.getRequestURI().toString(),
+                    httpExchange.getRequestMethod(),
+                    httpExchange.getRequestHeaders(),
+                    new String(httpExchange.getRequestBody().readAllBytes())
+            );
+            LOGGER.info("[" + request.getRequestMethod() + "]\n" +
+                    "URI: " + request.getRequestURI() + "\n"
+                    + "HEADERS: " + request.getRequestHeaders().keySet() + "\n"
+                    + "BODY: " + request.getRequestBody()
             );
 
-            HttpMethode requestMethode = HttpMethode.valueOf(t.getRequestMethod());
-            HttpResponse httpResponse = defaultHandle(t);
+            HttpMethode requestMethode = HttpMethode.valueOf(request.getRequestMethod());
+            HttpResponse httpResponse = defaultHandle(request);
 
             try {
                 if (methodHashMap.containsKey(requestMethode)) {
                     LOGGER.info("Method found " + methodHashMap.get(requestMethode).getName());
-                    httpResponse = (HttpResponse) methodHashMap.get(requestMethode).invoke(null, t);
+                    httpResponse = (HttpResponse) methodHashMap.get(requestMethode).invoke(null, request);
                 }
             } catch (IllegalAccessException | InvocationTargetException e) {
                 e.printStackTrace();
@@ -105,16 +112,17 @@ public class WebServerFactory {
 
             LOGGER.info("SERVER:\n[" + httpResponse.httpCode.rCode + "]: " + httpResponse.httpResponse);
 
-            t.sendResponseHeaders(httpResponse.httpCode.rCode, httpResponse.getSize());
-            OutputStream os = t.getResponseBody();
+            httpExchange.sendResponseHeaders(httpResponse.httpCode.rCode, httpResponse.getSize());
+            OutputStream os = httpExchange.getResponseBody();
             os.write(httpResponse.httpResponse.getBytes());
             os.close();
 
         }
 
-        HttpResponse defaultHandle(HttpExchange t) {
+        HttpResponse defaultHandle(Request t) {
             return new HttpResponse(HttpCode.NotFound_404, "For URI: " + t.getRequestURI());
         }
+
 
     }
 
@@ -125,10 +133,10 @@ public class WebServerFactory {
         }
 
         @MethodEndPoint(method = HttpMethode.POST)
-        static HttpResponse userHandlePost(HttpExchange t) {
+        static HttpResponse userHandlePost(Request t) {
 
             try {
-                UserEntity newUser = new Gson().fromJson(new String(t.getRequestBody().readAllBytes()), UserEntity.class);
+                UserEntity newUser = new Gson().fromJson(t.getRequestBody(), UserEntity.class);
 
                 LOGGER.info("Received user: " + new Gson().toJson(newUser));
                 if (newUser != null && newUser.getUsername() != null && newUser.getPassword() != null)
@@ -140,7 +148,7 @@ public class WebServerFactory {
                         }
                     }
 
-            } catch (JsonSyntaxException | IOException e) {
+            } catch (JsonSyntaxException e) {
                 LOGGER.warning(e.getMessage());
             }
 
@@ -156,11 +164,11 @@ public class WebServerFactory {
         }
 
         @MethodEndPoint(method = HttpMethode.GET)
-        static HttpResponse taskHandleGet(HttpExchange t) {
+        static HttpResponse taskHandleGet(Request t) {
             try {
 
 
-                String username = database.Authenticate(t.getRequestHeaders().getFirst("auth"));
+                String username = database.Authenticate(t.getFirstRequestHeader("Auth"));
                 LOGGER.info("USER: " + username);
 
                 List<TaskEntity> taskEntities = database.GetTasks(username);
@@ -175,12 +183,12 @@ public class WebServerFactory {
         }
 
         @MethodEndPoint(method = HttpMethode.POST)
-        static HttpResponse taskHandlePost(HttpExchange t) {
+        static HttpResponse taskHandlePost(Request t) {
             try {
-                String username = database.Authenticate(t.getRequestHeaders().getFirst("auth"));
+                String username = database.Authenticate(t.getFirstRequestHeader("Auth"));
                 LOGGER.info("USER: " + username);
 
-                TaskEntity newTask = new Gson().fromJson(new String(t.getRequestBody().readAllBytes()), TaskEntity.class);
+                TaskEntity newTask = new Gson().fromJson(t.getRequestBody(), TaskEntity.class);
 
                 LOGGER.info("Received task: " + new Gson().toJson(newTask));
 
@@ -192,7 +200,7 @@ public class WebServerFactory {
                             return new HttpResponse(HttpCode.Created_201, "Task added.");
                         }
                     }
-            } catch (JsonSyntaxException | IOException e) {
+            } catch (JsonSyntaxException e) {
                 return new HttpResponse(HttpCode.BadRequest_400, "JSON Parse error" + e.getMessage());
             } catch (BadRequest badRequest) {
                 return new HttpResponse(HttpCode.BadRequest_400, badRequest.getMessage());
@@ -212,9 +220,9 @@ public class WebServerFactory {
 
 
         @MethodEndPoint(method = HttpMethode.GET)
-        static HttpResponse taskHandleGet(HttpExchange t) {
+        static HttpResponse taskHandleGet(Request t) {
             try {
-                String username = database.Authenticate(t.getRequestHeaders().getFirst("auth"));
+                String username = database.Authenticate(t.getFirstRequestHeader("Auth"));
                 LOGGER.info("USER: " + username);
 
 
@@ -251,10 +259,10 @@ public class WebServerFactory {
         }
 
         @MethodEndPoint(method = HttpMethode.PUT)
-        static HttpResponse taskHandlePut(HttpExchange t) {
+        static HttpResponse taskHandlePut(Request t) {
 
             try {
-                String username = database.Authenticate(t.getRequestHeaders().getFirst("auth"));
+                String username = database.Authenticate(t.getFirstRequestHeader("Auth"));
                 LOGGER.info("USER: " + username);
 
 
@@ -273,7 +281,7 @@ public class WebServerFactory {
                         return new HttpResponse(HttpCode.Forbidden_403, "Task belongs to other user");
 
                     try {
-                        TaskEntity newTask = new Gson().fromJson(new String(t.getRequestBody().readAllBytes()), TaskEntity.class);
+                        TaskEntity newTask = new Gson().fromJson(t.getRequestBody(), TaskEntity.class);
 
                         LOGGER.info("Received task to update: " + new Gson().toJson(newTask));
 
@@ -282,7 +290,7 @@ public class WebServerFactory {
                                 String taskStr = new Gson().toJson(database.UpdateTask(newTask));
                                 return new HttpResponse(HttpCode.OK_200, taskStr);
                             }
-                    } catch (JsonSyntaxException | IOException e) {
+                    } catch (JsonSyntaxException e) {
                         LOGGER.warning(e.getMessage());
                     }
 
@@ -299,10 +307,10 @@ public class WebServerFactory {
         }
 
         @MethodEndPoint(method = HttpMethode.DELETE)
-        static HttpResponse taskHandleDelete(HttpExchange t) {
+        static HttpResponse taskHandleDelete(Request t) {
 
             try {
-                String username = database.Authenticate(t.getRequestHeaders().getFirst("auth"));
+                String username = database.Authenticate(t.getFirstRequestHeader("Auth"));
                 LOGGER.info("USER: " + username);
 
 
@@ -323,6 +331,7 @@ public class WebServerFactory {
 
 
                     database.removeTask(uuid);
+
                     return new HttpResponse(HttpCode.OK_200, "Task deleted");
 
                 }

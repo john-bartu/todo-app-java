@@ -46,8 +46,10 @@ public class ToDoService {
             List<UserEntity> foundUsers = userRepository.query(ue -> ue.encode().equals(token));
 
             if (foundUsers.size() > 0) {
+                LOGGER.info("Authenticated TOKEN:" + token);
                 return foundUsers.get(0).getUsername();
             } else {
+                LOGGER.info("Unauthenticated TOKEN:" + token);
                 throw new Unauthorized(token);
             }
         }

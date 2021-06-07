@@ -96,7 +96,6 @@ public class WebServerFactory {
                     + "URI: " + request.getRequestURI() + "\n"
                     + "HEADERS: " + request.getRequestHeaders().keySet() + "\n"
                     + "BODY: " + request.getRequestBody() + "\n"
-                    + "Auth: " + request.getFirstRequestHeader("Auth")
             );
 
             HttpMethode requestMethode = HttpMethode.valueOf(request.getRequestMethod());
@@ -169,8 +168,10 @@ public class WebServerFactory {
         @MethodEndPoint(method = HttpMethode.GET)
         static HttpResponse taskHandleGet(Request t) {
             try {
+                String token = t.getHeaderAuth("Auth");
 
-                String username = database.Authenticate(t.getFirstRequestHeader("Auth"));
+
+                String username = database.Authenticate(token);
                 LOGGER.info("USER: " + username);
 
                 List<TaskEntity> taskEntities = database.GetTasks(username);
@@ -196,7 +197,10 @@ public class WebServerFactory {
 
                     newTask.Validate();
 
-                    String username = database.Authenticate(t.getFirstRequestHeader("Auth"));
+                    String token = t.getHeaderAuth("Auth");
+
+
+                    String username = database.Authenticate(token);
                     LOGGER.info("USER: " + username);
 
                     if (newTask.getDescription() != null && !newTask.getDescription().equals("")) {
@@ -238,12 +242,14 @@ public class WebServerFactory {
                     LOGGER.info("Got task UUID: " + matcher.group(1));
                     UUID uuid = UUID.fromString(matcher.group(1));
 
-                    String username = database.Authenticate(t.getFirstRequestHeader("Auth"));
-                    LOGGER.info("USER: " + username);
+                    String token = t.getHeaderAuth("Auth");
 
 
                     if (!database.TaskExists(uuid))
                         return new HttpResponse().toJson(HttpCode.NotFound_404, "Task with given uuid does not exists");
+
+
+                    String username = database.Authenticate(token);
 
                     if (!database.TaskBelongsToUser(username, uuid))
                         return new HttpResponse().toJson(HttpCode.Forbidden_403, "Task belongs to other user");
@@ -280,11 +286,13 @@ public class WebServerFactory {
                     LOGGER.info("Got task UUID: " + matcher.group(1));
                     UUID uuid = UUID.fromString(matcher.group(1));
 
-                    String username = database.Authenticate(t.getFirstRequestHeader("Auth"));
-                    LOGGER.info("USER: " + username);
+                    String token = t.getHeaderAuth("Auth");
 
                     if (!database.TaskExists(uuid))
                         return new HttpResponse().toJson(HttpCode.NotFound_404, "Task with given uuid does not exists");
+
+                    String username = database.Authenticate(token);
+                    LOGGER.info("USER: " + username);
 
                     if (!database.TaskBelongsToUser(username, uuid))
                         return new HttpResponse().toJson(HttpCode.Forbidden_403, "Task belongs to other user");
@@ -334,12 +342,14 @@ public class WebServerFactory {
                     LOGGER.info("Got task UUID: " + matcher.group(1));
                     UUID uuid = UUID.fromString(matcher.group(1));
 
-                    String username = database.Authenticate(t.getFirstRequestHeader("Auth"));
-                    LOGGER.info("USER: " + username);
+                    String token = t.getHeaderAuth("Auth");
+
 
                     if (!database.TaskExists(uuid))
                         return new HttpResponse().toJson(HttpCode.NotFound_404, "Task with given uuid does not exists");
 
+
+                    String username = database.Authenticate(token);
 
                     if (!database.TaskBelongsToUser(username, uuid))
                         return new HttpResponse().toJson(HttpCode.Forbidden_403, "Task belongs to other user");

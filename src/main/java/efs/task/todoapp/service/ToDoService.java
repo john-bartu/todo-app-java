@@ -41,40 +41,18 @@ public class ToDoService {
     public String Authenticate(String token) throws BadRequest, Unauthorized {
         LOGGER.info("Authenticating:\n TOKEN:" + token);
 
-        if (ValidateToken(token)) {
 
-            List<UserEntity> foundUsers = userRepository.query(ue -> ue.encode().equals(token));
+        List<UserEntity> foundUsers = userRepository.query(ue -> ue.encode().equals(token));
 
-            if (foundUsers.size() > 0) {
-                LOGGER.info("Authenticated TOKEN:" + token);
-                return foundUsers.get(0).getUsername();
-            } else {
-                LOGGER.info("Unauthenticated TOKEN:" + token);
-                throw new Unauthorized(token);
-            }
+        if (foundUsers.size() > 0) {
+            LOGGER.info("Authenticated TOKEN:" + token);
+            return foundUsers.get(0).getUsername();
+        } else {
+            LOGGER.info("Unauthenticated TOKEN:" + token);
+            throw new Unauthorized(token);
         }
-        return null;
-
-    }
-
-    private boolean ValidateToken(String token) throws BadRequest {
 
 
-        if (token == null || token.equals(""))
-            throw new BadRequest("Auth token is null or empty");
-
-        if (token.split("[\\s:]+").length != 2)
-            throw new BadRequest("Auth token has no properly format XX:XX");
-
-        String un1 = token.split("[\\s:]+")[0];
-        if (un1 == null || un1.equals(""))
-            throw new BadRequest("Auth token username is empty or null");
-
-        String un2 = token.split("[\\s:]+")[1];
-        if (un2 == null || un2.equals(""))
-            throw new BadRequest("Auth token password is empty or null");
-
-        return true;
     }
 
     public boolean AddTask(String username, TaskEntity newTask) {

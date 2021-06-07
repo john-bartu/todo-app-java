@@ -138,9 +138,10 @@ public class WebServerFactory {
         static HttpResponse userHandlePost(Request t) {
 
             try {
-                UserEntity newUser = new Gson().fromJson(t.getRequestBody(), UserEntity.class);
 
+                UserEntity newUser = new Gson().fromJson(t.getRequestBody(), UserEntity.class);
                 LOGGER.info("Received user: " + new Gson().toJson(newUser));
+
                 if (newUser != null && newUser.getUsername() != null && newUser.getPassword() != null)
                     if (!newUser.getUsername().equals("") && !newUser.getPassword().equals("")) {
                         if (database.AddUser(newUser)) {
@@ -169,7 +170,6 @@ public class WebServerFactory {
         static HttpResponse taskHandleGet(Request t) {
             try {
 
-
                 String username = database.Authenticate(t.getFirstRequestHeader("Auth"));
                 LOGGER.info("USER: " + username);
 
@@ -187,17 +187,17 @@ public class WebServerFactory {
         @MethodEndPoint(method = HttpMethode.POST)
         static HttpResponse taskHandlePost(Request t) {
             try {
-                String username = database.Authenticate(t.getFirstRequestHeader("Auth"));
-                LOGGER.info("USER: " + username);
 
                 TaskEntity newTask = new Gson().fromJson(t.getRequestBody(), TaskEntity.class);
 
                 LOGGER.info("Received task: " + new Gson().toJson(newTask));
 
-
                 if (newTask != null) {
 
                     newTask.Validate();
+
+                    String username = database.Authenticate(t.getFirstRequestHeader("Auth"));
+                    LOGGER.info("USER: " + username);
 
                     if (newTask.getDescription() != null && !newTask.getDescription().equals("")) {
 
@@ -229,15 +229,15 @@ public class WebServerFactory {
         @MethodEndPoint(method = HttpMethode.GET)
         static HttpResponse taskHandleGet(Request t) {
             try {
-                String username = database.Authenticate(t.getFirstRequestHeader("Auth"));
-                LOGGER.info("USER: " + username);
-
 
                 Pattern pattern = Pattern.compile("^/todo/task/([A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{12})$");
                 Matcher matcher = pattern.matcher(t.getRequestURI().toString());
                 LOGGER.info("Got task from: " + t.getRequestURI().toString());
 
                 if (matcher.matches()) {
+                    String username = database.Authenticate(t.getFirstRequestHeader("Auth"));
+                    LOGGER.info("USER: " + username);
+
                     LOGGER.info("Got task UUID: " + matcher.group(1));
                     UUID uuid = UUID.fromString(matcher.group(1));
 
@@ -269,15 +269,16 @@ public class WebServerFactory {
         static HttpResponse taskHandlePut(Request t) {
 
             try {
-                String username = database.Authenticate(t.getFirstRequestHeader("Auth"));
-                LOGGER.info("USER: " + username);
-
 
                 Pattern pattern = Pattern.compile("^/todo/task/([A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{12})$");
                 Matcher matcher = pattern.matcher(t.getRequestURI().toString());
                 LOGGER.info("Got task from: " + t.getRequestURI().toString());
 
                 if (matcher.matches()) {
+
+                    String username = database.Authenticate(t.getFirstRequestHeader("Auth"));
+                    LOGGER.info("USER: " + username);
+
                     LOGGER.info("Got task UUID: " + matcher.group(1));
                     UUID uuid = UUID.fromString(matcher.group(1));
 

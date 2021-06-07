@@ -41,7 +41,7 @@ public class WebServerFactory {
                 String url = annotation.path();
 
 
-                System.out.println("\t" + url);
+//                System.out.println("\t" + url);
 
 
                 Constructor<?> constructor;
@@ -78,7 +78,7 @@ public class WebServerFactory {
                 if (annotation != null) {
                     HttpMethode method = annotation.method();
                     methodHashMap.put(method, endpointMethode);
-                    System.out.println("\t\t" + method);
+//                    System.out.println("\t\t" + method);
                 }
             }
         }
@@ -92,10 +92,11 @@ public class WebServerFactory {
                     httpExchange.getRequestHeaders(),
                     new String(httpExchange.getRequestBody().readAllBytes())
             );
-            LOGGER.info("[" + request.getRequestMethod() + "]\n" +
-                    "URI: " + request.getRequestURI() + "\n"
+            LOGGER.info("[" + request.getRequestMethod() + "]\n"
+                    + "URI: " + request.getRequestURI() + "\n"
                     + "HEADERS: " + request.getRequestHeaders().keySet() + "\n"
                     + "BODY: " + request.getRequestBody()
+                    + "Auth: " + request.getFirstRequestHeader("Auth")
             );
 
             HttpMethode requestMethode = HttpMethode.valueOf(request.getRequestMethod());

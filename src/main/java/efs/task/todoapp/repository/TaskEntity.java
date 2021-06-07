@@ -69,12 +69,11 @@ public class TaskEntity {
     public void Validate() throws BadRequest {
         if (due != null) {
             SimpleDateFormat sdfrmt = new SimpleDateFormat("yyyy-MM-dd");
-
+            sdfrmt.setLenient(false);
+            System.out.println(due + " is valid Date Format");
             try {
-                Date javaDate = sdfrmt.parse(due);
-                System.out.println(due + " is valid date format");
+                sdfrmt.parse(due);
             } catch (ParseException e) {
-                System.out.println();
                 throw new BadRequest(due + " is Invalid Date format");
             }
 

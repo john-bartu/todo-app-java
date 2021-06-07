@@ -194,15 +194,16 @@ public class WebServerFactory {
                 LOGGER.info("Received task: " + new Gson().toJson(newTask));
 
 
-                if (newTask != null)
+                if (newTask != null) {
 
                     newTask.Validate();
 
-                if (newTask.getDescription() != null && !newTask.getDescription().equals("")) {
+                    if (newTask.getDescription() != null && !newTask.getDescription().equals("")) {
 
-                    if (database.AddTask(username, newTask)) {
+                        if (database.AddTask(username, newTask)) {
 
-                        return new HttpResponse(HttpCode.Created_201, "Task added.");
+                            return new HttpResponse(HttpCode.Created_201, "Task added.");
+                        }
                     }
                 }
             } catch (JsonSyntaxException e) {

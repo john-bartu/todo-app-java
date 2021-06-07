@@ -77,6 +77,52 @@ class TaskEndpointTest {
 
     }
 
+
+    @Test
+    @Timeout(1)
+    void shouldNotAddTask() throws IOException, InterruptedException {
+
+        String username = "userTest";
+        String password = "passwordTest";
+
+        //given
+        var createUserRequest = HttpRequest.newBuilder()
+                .uri(URI.create(TODO_APP_PATH + "/user"))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString("{\"username\": \"" + username + "\", \"password\": \"" + password + "\"}"))
+                .build();
+
+        //when
+        var httpResponseUser = httpClient.send(createUserRequest, ofString());
+
+        //then
+        assertThat(httpResponseUser.statusCode()).as("Response create user").isEqualTo(HttpCode.Created_201.getrCode());
+
+        StringBuilder token = new StringBuilder();
+        token.append(Base64.getEncoder().encodeToString(username.getBytes()));
+        token.append(":");
+        token.append(Base64.getEncoder().encodeToString(password.getBytes()));
+
+        System.out.println("HASH: " + token);
+
+
+        var createTaskRequest = HttpRequest.newBuilder()
+                .uri(URI.create(TODO_APP_PATH + "/task"))
+                .header("Content-Type", "application/json")
+                .header("Auth", token.toString())
+                .POST(HttpRequest.BodyPublishers.ofString("{\"description\": \"Kup mleko\",\"due\": \"2021-30-06\"}"))
+                .build();
+
+        //when
+        var httpResponseTask = httpClient.send(createTaskRequest, ofString());
+
+        //then
+        assertThat(httpResponseTask.statusCode()).as("Response create task for user").isEqualTo(HttpCode.BadRequest_400.getrCode());
+
+
+    }
+
+
     @Test
     @Timeout(1)
     void shouldNotGetTaskList_NoUser() throws IOException, InterruptedException {

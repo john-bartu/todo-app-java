@@ -141,9 +141,10 @@ public class WebServerFactory {
             } catch (JsonSyntaxException | IOException e) {
                 LOGGER.warning(e.getMessage());
             }
-            return new HttpResponse(HttpCode.BadRequest_400, "No required fields for user");
 
+            return new HttpResponse(HttpCode.BadRequest_400, "No required fields for user");
         }
+
     }
 
     @URIEndPoint(path = "/todo/task")
@@ -179,6 +180,7 @@ public class WebServerFactory {
 
             List<TaskEntity> taskEntities = database.GetTasks(username);
             return new HttpResponse(HttpCode.OK_200, new Gson().toJson(taskEntities));
+
         }
 
         @MethodEndPoint(method = HttpMethode.POST)
@@ -226,7 +228,6 @@ public class WebServerFactory {
             return new HttpResponse(HttpCode.BadRequest_400, "No required fields for task provided");
         }
     }
-
 
     @URIEndPoint(path = "/todo/task/")
     static class TodoTaskEndpoint extends EndpointDefault {

@@ -37,11 +37,27 @@ public class ToDoService {
         }
     }
 
+    void CheckToken(String token) throws BadRequest {
+
+
+        List<String> test = Arrays.asList(token.split("[\\s:]+"));
+
+        try {
+            Base64.getDecoder().decode(test.get(0));
+            Base64.getDecoder().decode(test.get(1));
+
+        } catch (IllegalArgumentException e) {
+            throw new BadRequest("Token is not a token");
+        }
+
+    }
+
 
     public String Authenticate(String token) throws BadRequest, Unauthorized {
+
         LOGGER.info("Authenticating:\n TOKEN:" + token);
 
-
+        CheckToken(token);
         List<UserEntity> foundUsers = userRepository.query(ue -> ue.encode().equals(token));
 
         if (foundUsers.size() > 0) {

@@ -14,6 +14,12 @@ class HttpResponse {
         httpCode = HttpCode.NotFound_404;
     }
 
+    public HttpResponse toJson(HttpCode code, String data) {
+        httpResponse = "{\"data\":\"" + data + "\"}";
+        httpCode = code;
+        return this;
+    }
+
     public int getSize() {
         return httpResponse.getBytes().length;
     }

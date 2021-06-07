@@ -114,6 +114,7 @@ public class WebServerFactory {
             LOGGER.info("SERVER:\n[" + httpResponse.httpCode.rCode + "]: " + httpResponse.httpResponse);
 
             httpExchange.sendResponseHeaders(httpResponse.httpCode.rCode, httpResponse.getSize());
+            httpExchange.getResponseHeaders().add("Content-type", "application/json");
             OutputStream os = httpExchange.getResponseBody();
             os.write(httpResponse.httpResponse.getBytes());
             os.close();
@@ -121,7 +122,7 @@ public class WebServerFactory {
         }
 
         HttpResponse defaultHandle(Request t) {
-            return new HttpResponse(HttpCode.NotFound_404, "For URI: " + t.getRequestURI());
+            return new HttpResponse().toJson(HttpCode.NotFound_404, "For URI: " + t.getRequestURI());
         }
 
 
@@ -143,9 +144,9 @@ public class WebServerFactory {
                 if (newUser != null && newUser.getUsername() != null && newUser.getPassword() != null)
                     if (!newUser.getUsername().equals("") && !newUser.getPassword().equals("")) {
                         if (database.AddUser(newUser)) {
-                            return new HttpResponse(HttpCode.Created_201, "User added");
+                            return new HttpResponse().toJson(HttpCode.Created_201, "User added");
                         } else {
-                            return new HttpResponse(HttpCode.Conflict_409, "User with given login exists");
+                            return new HttpResponse().toJson(HttpCode.Conflict_409, "User with given login exists");
                         }
                     }
 
@@ -153,7 +154,7 @@ public class WebServerFactory {
                 LOGGER.warning(e.getMessage());
             }
 
-            return new HttpResponse(HttpCode.BadRequest_400, "No required fields for user");
+            return new HttpResponse().toJson(HttpCode.BadRequest_400, "No required fields for user");
         }
 
     }
@@ -176,9 +177,9 @@ public class WebServerFactory {
 
                 return new HttpResponse(HttpCode.OK_200, new Gson().toJson(taskEntities));
             } catch (BadRequest badRequest) {
-                return new HttpResponse(HttpCode.BadRequest_400, badRequest.getMessage());
+                return new HttpResponse().toJson(HttpCode.BadRequest_400, badRequest.getMessage());
             } catch (Unauthorized unauthorized) {
-                return new HttpResponse(HttpCode.Unauthorized_401, unauthorized.getMessage());
+                return new HttpResponse().toJson(HttpCode.Unauthorized_401, unauthorized.getMessage());
             }
 
         }
@@ -202,19 +203,19 @@ public class WebServerFactory {
 
                         if (database.AddTask(username, newTask)) {
 
-                            return new HttpResponse(HttpCode.Created_201, "Task added.");
+                            return new HttpResponse().toJson(HttpCode.Created_201, "Task added.");
                         }
                     }
                 }
             } catch (JsonSyntaxException e) {
-                return new HttpResponse(HttpCode.BadRequest_400, "JSON Parse error" + e.getMessage());
+                return new HttpResponse().toJson(HttpCode.BadRequest_400, "JSON Parse error" + e.getMessage());
             } catch (BadRequest badRequest) {
-                return new HttpResponse(HttpCode.BadRequest_400, badRequest.getMessage());
+                return new HttpResponse().toJson(HttpCode.BadRequest_400, badRequest.getMessage());
             } catch (Unauthorized unauthorized) {
-                return new HttpResponse(HttpCode.Unauthorized_401, unauthorized.getMessage());
+                return new HttpResponse().toJson(HttpCode.Unauthorized_401, unauthorized.getMessage());
             }
 
-            return new HttpResponse(HttpCode.BadRequest_400, "No required fields for task provided");
+            return new HttpResponse().toJson(HttpCode.BadRequest_400, "No required fields for task provided");
         }
     }
 
@@ -241,10 +242,10 @@ public class WebServerFactory {
                     UUID uuid = UUID.fromString(matcher.group(1));
 
                     if (!database.TaskExists(uuid))
-                        return new HttpResponse(HttpCode.NotFound_404, "Task with given uuid does not exists");
+                        return new HttpResponse().toJson(HttpCode.NotFound_404, "Task with given uuid does not exists");
 
                     if (!database.TaskBelongsToUser(username, uuid))
-                        return new HttpResponse(HttpCode.Forbidden_403, "Task belongs to other user");
+                        return new HttpResponse().toJson(HttpCode.Forbidden_403, "Task belongs to other user");
 
 
                     String taskStr = new Gson().toJson(database.GetTask(uuid));
@@ -255,12 +256,12 @@ public class WebServerFactory {
                     LOGGER.info("No matches ");
                 }
 
-                return new HttpResponse(HttpCode.BadRequest_400, "No task uuid provided");
+                return new HttpResponse().toJson(HttpCode.BadRequest_400, "No task uuid provided");
 
             } catch (BadRequest badRequest) {
-                return new HttpResponse(HttpCode.BadRequest_400, badRequest.getMessage());
+                return new HttpResponse().toJson(HttpCode.BadRequest_400, badRequest.getMessage());
             } catch (Unauthorized unauthorized) {
-                return new HttpResponse(HttpCode.Unauthorized_401, unauthorized.getMessage());
+                return new HttpResponse().toJson(HttpCode.Unauthorized_401, unauthorized.getMessage());
             }
         }
 
@@ -281,10 +282,10 @@ public class WebServerFactory {
                     UUID uuid = UUID.fromString(matcher.group(1));
 
                     if (!database.TaskExists(uuid))
-                        return new HttpResponse(HttpCode.NotFound_404, "Task with given uuid does not exists");
+                        return new HttpResponse().toJson(HttpCode.NotFound_404, "Task with given uuid does not exists");
 
                     if (!database.TaskBelongsToUser(username, uuid))
-                        return new HttpResponse(HttpCode.Forbidden_403, "Task belongs to other user");
+                        return new HttpResponse().toJson(HttpCode.Forbidden_403, "Task belongs to other user");
 
                     try {
                         TaskEntity newTask = new Gson().fromJson(t.getRequestBody(), TaskEntity.class);
@@ -308,12 +309,12 @@ public class WebServerFactory {
 
                 }
 
-                return new HttpResponse(HttpCode.BadRequest_400, "No task uuid provided");
+                return new HttpResponse().toJson(HttpCode.BadRequest_400, "No task uuid provided");
 
             } catch (BadRequest badRequest) {
-                return new HttpResponse(HttpCode.BadRequest_400, badRequest.getMessage());
+                return new HttpResponse().toJson(HttpCode.BadRequest_400, badRequest.getMessage());
             } catch (Unauthorized unauthorized) {
-                return new HttpResponse(HttpCode.Unauthorized_401, unauthorized.getMessage());
+                return new HttpResponse().toJson(HttpCode.Unauthorized_401, unauthorized.getMessage());
             }
         }
 
@@ -334,25 +335,25 @@ public class WebServerFactory {
                     UUID uuid = UUID.fromString(matcher.group(1));
 
                     if (!database.TaskExists(uuid))
-                        return new HttpResponse(HttpCode.NotFound_404, "Task with given uuid does not exists");
+                        return new HttpResponse().toJson(HttpCode.NotFound_404, "Task with given uuid does not exists");
 
 
                     if (!database.TaskBelongsToUser(username, uuid))
-                        return new HttpResponse(HttpCode.Forbidden_403, "Task belongs to other user");
+                        return new HttpResponse().toJson(HttpCode.Forbidden_403, "Task belongs to other user");
 
 
                     database.removeTask(uuid);
 
-                    return new HttpResponse(HttpCode.OK_200, "Task deleted");
+                    return new HttpResponse().toJson(HttpCode.OK_200, "Task deleted");
 
                 }
 
-                return new HttpResponse(HttpCode.BadRequest_400, "No task uuid provided");
+                return new HttpResponse().toJson(HttpCode.BadRequest_400, "No task uuid provided");
 
             } catch (BadRequest badRequest) {
-                return new HttpResponse(HttpCode.BadRequest_400, badRequest.getMessage());
+                return new HttpResponse().toJson(HttpCode.BadRequest_400, badRequest.getMessage());
             } catch (Unauthorized unauthorized) {
-                return new HttpResponse(HttpCode.Unauthorized_401, unauthorized.getMessage());
+                return new HttpResponse().toJson(HttpCode.Unauthorized_401, unauthorized.getMessage());
             }
         }
 

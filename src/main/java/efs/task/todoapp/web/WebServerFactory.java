@@ -283,7 +283,7 @@ public class WebServerFactory {
                 LOGGER.info("No matches ");
             }
 
-            return new HttpResponse(HttpCode.NotFound_404, "Uri not found");
+            return new HttpResponse(HttpCode.BadRequest_400, "Task not found");
         }
 
         @MethodEndPoint(method = HttpMethode.PUT)
@@ -341,7 +341,7 @@ public class WebServerFactory {
 
             }
 
-            return new HttpResponse(HttpCode.NotFound_404, "Uri not found");
+            return new HttpResponse(HttpCode.BadRequest_400, "Task not found");
         }
 
         @MethodEndPoint(method = HttpMethode.DELETE)
@@ -389,7 +389,7 @@ public class WebServerFactory {
 
             }
 
-            return new HttpResponse(HttpCode.NotFound_404, "Uri not found");
+            return new HttpResponse(HttpCode.BadRequest_400, "Task not found");
         }
     }
 }

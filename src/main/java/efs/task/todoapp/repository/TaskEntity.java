@@ -4,7 +4,6 @@ import efs.task.todoapp.service.BadRequest;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.UUID;
 
 public class TaskEntity {
@@ -67,6 +66,7 @@ public class TaskEntity {
     }
 
     public void Validate() throws BadRequest {
+
         if (due != null) {
             SimpleDateFormat sdfrmt = new SimpleDateFormat("yyyy-MM-dd");
             sdfrmt.setLenient(false);

@@ -66,6 +66,48 @@ public class WebServerFactory {
         return server;
     }
 
+    @MethodEndPoint(method = HttpMethode.DELETE)
+    static HttpResponse taskHandleDelete(Request t) {
+
+        try {
+
+
+            Pattern pattern = Pattern.compile("^/todo/task/([A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{12})$");
+            Matcher matcher = pattern.matcher(t.getRequestURI().toString());
+            LOGGER.info("Got task from: " + t.getRequestURI().toString());
+
+            if (matcher.matches()) {
+                LOGGER.info("Got task UUID: " + matcher.group(1));
+                UUID uuid = UUID.fromString(matcher.group(1));
+
+                String token = t.getHeaderAuth("Auth");
+
+
+                if (!database.TaskExists(uuid))
+                    return new HttpResponse().toJson(HttpCode.NotFound_404, "Task with given uuid does not exists");
+
+
+                String username = database.Authenticate(token);
+
+                if (!database.TaskBelongsToUser(username, uuid))
+                    return new HttpResponse().toJson(HttpCode.Forbidden_403, "Task belongs to other user");
+
+
+                database.removeTask(uuid);
+
+                return new HttpResponse().toJson(HttpCode.OK_200, "Task deleted");
+
+            }
+
+            return new HttpResponse().toJson(HttpCode.BadRequest_400, "No task uuid provided");
+
+        } catch (BadRequest badRequest) {
+            return new HttpResponse().toJson(HttpCode.BadRequest_400, badRequest.getMessage());
+        } catch (Unauthorized unauthorized) {
+            return new HttpResponse().toJson(HttpCode.Unauthorized_401, unauthorized.getMessage());
+        }
+    }
+
     static class EndpointDefault implements HttpHandler {
         HashMap<HttpMethode, Method> methodHashMap = new HashMap<>();
 
@@ -225,6 +267,8 @@ public class WebServerFactory {
 
     @URIEndPoint(path = "/todo/task/")
     static class TodoTaskEndpoint extends EndpointDefault {
+        static Pattern pattern = Pattern.compile("^/todo/task/([A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{12})$");
+
         TodoTaskEndpoint() {
             InitMethodEndpoints(this);
         }
@@ -234,9 +278,8 @@ public class WebServerFactory {
         static HttpResponse taskHandleGet(Request t) {
             try {
 
-                Pattern pattern = Pattern.compile("^/todo/task/([A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{12})$");
-                Matcher matcher = pattern.matcher(t.getRequestURI().toString());
-                LOGGER.info("Got task from: " + t.getRequestURI().toString());
+                Matcher matcher = pattern.matcher(t.getRequestURI());
+                LOGGER.info("Got task from: " + t.getRequestURI());
 
                 if (matcher.matches()) {
                     LOGGER.info("Got task UUID: " + matcher.group(1));
@@ -277,9 +320,8 @@ public class WebServerFactory {
 
             try {
 
-                Pattern pattern = Pattern.compile("^/todo/task/([A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{12})$");
-                Matcher matcher = pattern.matcher(t.getRequestURI().toString());
-                LOGGER.info("Got task from: " + t.getRequestURI().toString());
+                Matcher matcher = pattern.matcher(t.getRequestURI());
+                LOGGER.info("Got task from: " + t.getRequestURI());
 
                 if (matcher.matches()) {
 
@@ -297,78 +339,31 @@ public class WebServerFactory {
                     if (!database.TaskBelongsToUser(username, uuid))
                         return new HttpResponse().toJson(HttpCode.Forbidden_403, "Task belongs to other user");
 
-                    try {
-                        TaskEntity newTask = new Gson().fromJson(t.getRequestBody(), TaskEntity.class);
 
+                    TaskEntity newTask = new Gson().fromJson(t.getRequestBody(), TaskEntity.class);
 
-                        LOGGER.info("Received task to update: " + new Gson().toJson(newTask));
+                    LOGGER.info("Received task to update: " + new Gson().toJson(newTask));
 
-                        if (newTask != null) {
+                    if (newTask != null) {
 
-                            newTask.Validate();
+                        newTask.Validate();
 
-                            if (!newTask.getDescription().equals("")) {
-                                String taskStr = new Gson().toJson(database.UpdateTask(newTask));
-                                return new HttpResponse(HttpCode.OK_200, taskStr);
-                            }
+                        if (!newTask.getDescription().equals("")) {
+                            String taskStr = new Gson().toJson(database.UpdateTask(newTask));
+                            return new HttpResponse(HttpCode.OK_200, taskStr);
                         }
-                    } catch (JsonSyntaxException e) {
-                        LOGGER.warning(e.getMessage());
                     }
-
-
                 }
 
-                return new HttpResponse().toJson(HttpCode.BadRequest_400, "No task uuid provided");
+                throw new BadRequest("No task uuid or body provided");
 
-            } catch (BadRequest badRequest) {
+            } catch (BadRequest | JsonSyntaxException badRequest) {
                 return new HttpResponse().toJson(HttpCode.BadRequest_400, badRequest.getMessage());
             } catch (Unauthorized unauthorized) {
                 return new HttpResponse().toJson(HttpCode.Unauthorized_401, unauthorized.getMessage());
             }
         }
-
-        @MethodEndPoint(method = HttpMethode.DELETE)
-        static HttpResponse taskHandleDelete(Request t) {
-
-            try {
-
-
-                Pattern pattern = Pattern.compile("^/todo/task/([A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{12})$");
-                Matcher matcher = pattern.matcher(t.getRequestURI().toString());
-                LOGGER.info("Got task from: " + t.getRequestURI().toString());
-
-                if (matcher.matches()) {
-                    LOGGER.info("Got task UUID: " + matcher.group(1));
-                    UUID uuid = UUID.fromString(matcher.group(1));
-
-                    String token = t.getHeaderAuth("Auth");
-
-
-                    if (!database.TaskExists(uuid))
-                        return new HttpResponse().toJson(HttpCode.NotFound_404, "Task with given uuid does not exists");
-
-
-                    String username = database.Authenticate(token);
-
-                    if (!database.TaskBelongsToUser(username, uuid))
-                        return new HttpResponse().toJson(HttpCode.Forbidden_403, "Task belongs to other user");
-
-
-                    database.removeTask(uuid);
-
-                    return new HttpResponse().toJson(HttpCode.OK_200, "Task deleted");
-
-                }
-
-                return new HttpResponse().toJson(HttpCode.BadRequest_400, "No task uuid provided");
-
-            } catch (BadRequest badRequest) {
-                return new HttpResponse().toJson(HttpCode.BadRequest_400, badRequest.getMessage());
-            } catch (Unauthorized unauthorized) {
-                return new HttpResponse().toJson(HttpCode.Unauthorized_401, unauthorized.getMessage());
-            }
-        }
-
     }
+
 }
+

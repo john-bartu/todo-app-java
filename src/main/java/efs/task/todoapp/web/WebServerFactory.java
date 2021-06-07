@@ -162,6 +162,14 @@ public class WebServerFactory {
             if (username.split("[\\s:]+").length != 2)
                 return new HttpResponse(HttpCode.BadRequest_400, "No auth header");
 
+            String un1 = username.split("[\\s:]+")[0];
+            if (un1 == null || un1 == "")
+                return new HttpResponse(HttpCode.BadRequest_400, "No auth header");
+
+            String un2 = username.split("[\\s:]+")[1];
+            if (un2 == null || un2 == "")
+                return new HttpResponse(HttpCode.BadRequest_400, "No auth header");
+
 
             username = database.Authenticate(username);
             LOGGER.info("USER: " + username);
@@ -183,6 +191,14 @@ public class WebServerFactory {
             if (username.split("[\\s:]+").length != 2)
                 return new HttpResponse(HttpCode.BadRequest_400, "No auth header");
 
+            String un1 = username.split("[\\s:]+")[0];
+            if (un1 == null || un1 == "")
+                return new HttpResponse(HttpCode.BadRequest_400, "No auth header");
+
+            String un2 = username.split("[\\s:]+")[1];
+            if (un2 == null || un2 == "")
+                return new HttpResponse(HttpCode.BadRequest_400, "No auth header");
+
 
             username = database.Authenticate(username);
             LOGGER.info("USER: " + username);
@@ -196,7 +212,7 @@ public class WebServerFactory {
                 LOGGER.info("Received task: " + new Gson().toJson(newTask));
 
                 if (newTask != null)
-                    if (!newTask.getDescription().equals("")) {
+                    if (newTask.getDescription() != null && !newTask.getDescription().equals("")) {
 
                         if (database.AddTask(username, newTask)) {
 
@@ -229,6 +245,13 @@ public class WebServerFactory {
             if (username.split("[\\s:]+").length != 2)
                 return new HttpResponse(HttpCode.BadRequest_400, "No auth header");
 
+            String un1 = username.split("[\\s:]+")[0];
+            if (un1 == null || un1 == "")
+                return new HttpResponse(HttpCode.BadRequest_400, "No auth header");
+
+            String un2 = username.split("[\\s:]+")[1];
+            if (un2 == null || un2 == "")
+                return new HttpResponse(HttpCode.BadRequest_400, "No auth header");
 
             username = database.Authenticate(username);
             LOGGER.info("USER: " + username);
@@ -270,6 +293,15 @@ public class WebServerFactory {
 
             if (username.split("[\\s:]+").length != 2)
                 return new HttpResponse(HttpCode.BadRequest_400, "Bad auth header");
+
+            String un1 = username.split("[\\s:]+")[0];
+            if (un1 == null || un1 == "")
+                return new HttpResponse(HttpCode.BadRequest_400, "No auth header");
+
+            String un2 = username.split("[\\s:]+")[1];
+            if (un2 == null || un2 == "")
+                return new HttpResponse(HttpCode.BadRequest_400, "No auth header");
+
 
             username = database.Authenticate(username);
             LOGGER.info("USER: " + username);
@@ -318,6 +350,14 @@ public class WebServerFactory {
                 return new HttpResponse(HttpCode.BadRequest_400, "No auth header");
 
             if (username.split("[\\s:]+").length != 2)
+                return new HttpResponse(HttpCode.BadRequest_400, "No auth header");
+
+            String un1 = username.split("[\\s:]+")[0];
+            if (un1 == null || un1 == "")
+                return new HttpResponse(HttpCode.BadRequest_400, "No auth header");
+
+            String un2 = username.split("[\\s:]+")[1];
+            if (un2 == null || un2 == "")
                 return new HttpResponse(HttpCode.BadRequest_400, "No auth header");
 
 

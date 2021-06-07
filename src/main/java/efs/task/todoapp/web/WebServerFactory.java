@@ -246,7 +246,8 @@ public class WebServerFactory {
                         String username = database.Authenticate(token);
                         if (database.AddTask(username, newTask)) {
 
-                            return new HttpResponse().toJson(HttpCode.Created_201, "Task added.");
+                            return new HttpResponse().toJson(HttpCode.Created_201, "{\"id\":\"" + newTask.getId() + "\"}")
+                                    ;
                         }
                     }
                 }
@@ -330,7 +331,7 @@ public class WebServerFactory {
 
                     LOGGER.info("Received task to update: " + new Gson().toJson(newTask));
 
-                    if (newTask != null) {
+                    if (newTask != null && !newTask.getDescription().equals("")) {
 
                         newTask.Validate();
 
@@ -344,10 +345,9 @@ public class WebServerFactory {
                             return new HttpResponse().toJson(HttpCode.Forbidden_403, "Task belongs to other user");
 
 
-                        if (!newTask.getDescription().equals("")) {
-                            String taskStr = new Gson().toJson(database.UpdateTask(newTask));
-                            return new HttpResponse(HttpCode.OK_200, taskStr);
-                        }
+                        String taskStr = new Gson().toJson(database.UpdateTask(newTask));
+                        return new HttpResponse(HttpCode.OK_200, taskStr);
+
                     }
                 }
 

@@ -7,7 +7,9 @@ import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import efs.task.todoapp.repository.TaskEntity;
 import efs.task.todoapp.repository.UserEntity;
+import efs.task.todoapp.service.BadRequest;
 import efs.task.todoapp.service.ToDoService;
+import efs.task.todoapp.service.Unauthorized;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -155,60 +157,29 @@ public class WebServerFactory {
 
         @MethodEndPoint(method = HttpMethode.GET)
         static HttpResponse taskHandleGet(HttpExchange t) {
-            String username = t.getRequestHeaders().getFirst("auth");
-
-            if (username == null || username.equals(""))
-                return new HttpResponse(HttpCode.BadRequest_400, "No auth header");
-
-            if (username.split("[\\s:]+").length != 2)
-                return new HttpResponse(HttpCode.BadRequest_400, "No auth header");
-
-            String un1 = username.split("[\\s:]+")[0];
-            if (un1 == null || un1.equals(""))
-                return new HttpResponse(HttpCode.BadRequest_400, "No auth header");
-
-            String un2 = username.split("[\\s:]+")[1];
-            if (un2 == null || un2.equals(""))
-                return new HttpResponse(HttpCode.BadRequest_400, "No auth header");
+            try {
 
 
-            username = database.Authenticate(username);
-            LOGGER.info("USER: " + username);
-            if (username == null)
-                return new HttpResponse(HttpCode.Unauthorized_401, "Authentication failed");
+                String username = database.Authenticate(t.getRequestHeaders().getFirst("auth"));
+                LOGGER.info("USER: " + username);
 
+                List<TaskEntity> taskEntities = database.GetTasks(username);
 
-            List<TaskEntity> taskEntities = database.GetTasks(username);
-            return new HttpResponse(HttpCode.OK_200, new Gson().toJson(taskEntities));
+                return new HttpResponse(HttpCode.OK_200, new Gson().toJson(taskEntities));
+            } catch (BadRequest badRequest) {
+                return new HttpResponse(HttpCode.BadRequest_400, badRequest.getMessage());
+            } catch (Unauthorized unauthorized) {
+                return new HttpResponse(HttpCode.Unauthorized_401, unauthorized.getMessage());
+            }
 
         }
 
         @MethodEndPoint(method = HttpMethode.POST)
         static HttpResponse taskHandlePost(HttpExchange t) {
-            String username = t.getRequestHeaders().getFirst("auth");
-
-            if (username == null || username.equals(""))
-                return new HttpResponse(HttpCode.BadRequest_400, "No auth header");
-
-            if (username.split("[\\s:]+").length != 2)
-                return new HttpResponse(HttpCode.BadRequest_400, "No auth header");
-
-            String un1 = username.split("[\\s:]+")[0];
-            if (un1 == null || un1 == "")
-                return new HttpResponse(HttpCode.BadRequest_400, "No auth header");
-
-            String un2 = username.split("[\\s:]+")[1];
-            if (un2 == null || un2 == "")
-                return new HttpResponse(HttpCode.BadRequest_400, "No auth header");
-
-
-            username = database.Authenticate(username);
-            LOGGER.info("USER: " + username);
-            if (username == null)
-                return new HttpResponse(HttpCode.Unauthorized_401, "Authentication failed");
-
-
             try {
+                String username = database.Authenticate(t.getRequestHeaders().getFirst("auth"));
+                LOGGER.info("USER: " + username);
+
                 TaskEntity newTask = new Gson().fromJson(new String(t.getRequestBody().readAllBytes()), TaskEntity.class);
 
                 LOGGER.info("Received task: " + new Gson().toJson(newTask));
@@ -222,7 +193,11 @@ public class WebServerFactory {
                         }
                     }
             } catch (JsonSyntaxException | IOException e) {
-                LOGGER.warning(e.getMessage());
+                return new HttpResponse(HttpCode.BadRequest_400, "JSON Parse error" + e.getMessage());
+            } catch (BadRequest badRequest) {
+                return new HttpResponse(HttpCode.BadRequest_400, badRequest.getMessage());
+            } catch (Unauthorized unauthorized) {
+                return new HttpResponse(HttpCode.Unauthorized_401, unauthorized.getMessage());
             }
 
             return new HttpResponse(HttpCode.BadRequest_400, "No required fields for task provided");
@@ -238,158 +213,128 @@ public class WebServerFactory {
 
         @MethodEndPoint(method = HttpMethode.GET)
         static HttpResponse taskHandleGet(HttpExchange t) {
-
-            String username = t.getRequestHeaders().getFirst("auth");
-            if (username == null || username.equals(""))
-                return new HttpResponse(HttpCode.BadRequest_400, "No auth header");
-
-            if (username.split("[\\s:]+").length != 2)
-                return new HttpResponse(HttpCode.BadRequest_400, "No auth header");
-
-            String un1 = username.split("[\\s:]+")[0];
-            if (un1 == null || un1.equals(""))
-                return new HttpResponse(HttpCode.BadRequest_400, "No auth header");
-
-            String un2 = username.split("[\\s:]+")[1];
-            if (un2 == null || un2.equals(""))
-                return new HttpResponse(HttpCode.BadRequest_400, "No auth header");
-
-            username = database.Authenticate(username);
-            LOGGER.info("USER: " + username);
-            if (username == null)
-                return new HttpResponse(HttpCode.Unauthorized_401, "Authentication failed");
+            try {
+                String username = database.Authenticate(t.getRequestHeaders().getFirst("auth"));
+                LOGGER.info("USER: " + username);
 
 
-            Pattern pattern = Pattern.compile("^/todo/task/([A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{12})$");
-            Matcher matcher = pattern.matcher(t.getRequestURI().toString());
-            LOGGER.info("Got task from: " + t.getRequestURI().toString());
+                Pattern pattern = Pattern.compile("^/todo/task/([A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{12})$");
+                Matcher matcher = pattern.matcher(t.getRequestURI().toString());
+                LOGGER.info("Got task from: " + t.getRequestURI().toString());
 
-            if (matcher.matches()) {
-                LOGGER.info("Got task UUID: " + matcher.group(1));
-                UUID uuid = UUID.fromString(matcher.group(1));
+                if (matcher.matches()) {
+                    LOGGER.info("Got task UUID: " + matcher.group(1));
+                    UUID uuid = UUID.fromString(matcher.group(1));
 
-                if (!database.TaskExists(uuid))
-                    return new HttpResponse(HttpCode.NotFound_404, "Task with given uuid does not exists");
+                    if (!database.TaskExists(uuid))
+                        return new HttpResponse(HttpCode.NotFound_404, "Task with given uuid does not exists");
 
-                if (!database.TaskBelongsToUser(username, uuid))
-                    return new HttpResponse(HttpCode.Forbidden_403, "Task belongs to other user");
+                    if (!database.TaskBelongsToUser(username, uuid))
+                        return new HttpResponse(HttpCode.Forbidden_403, "Task belongs to other user");
 
 
-                String taskStr = new Gson().toJson(database.GetTask(uuid));
+                    String taskStr = new Gson().toJson(database.GetTask(uuid));
 
-                return new HttpResponse(HttpCode.OK_200, taskStr);
+                    return new HttpResponse(HttpCode.OK_200, taskStr);
 
-            } else {
-                LOGGER.info("No matches ");
+                } else {
+                    LOGGER.info("No matches ");
+                }
+
+                return new HttpResponse(HttpCode.BadRequest_400, "No task uuid provided");
+
+            } catch (BadRequest badRequest) {
+                return new HttpResponse(HttpCode.BadRequest_400, badRequest.getMessage());
+            } catch (Unauthorized unauthorized) {
+                return new HttpResponse(HttpCode.Unauthorized_401, unauthorized.getMessage());
             }
-
-            return new HttpResponse(HttpCode.BadRequest_400, "Task not found");
         }
 
         @MethodEndPoint(method = HttpMethode.PUT)
         static HttpResponse taskHandlePut(HttpExchange t) {
-            String username = t.getRequestHeaders().getFirst("auth");
-            if (username == null || username.equals(""))
-                return new HttpResponse(HttpCode.BadRequest_400, "No auth header");
 
-            if (username.split("[\\s:]+").length != 2)
-                return new HttpResponse(HttpCode.BadRequest_400, "Bad auth header");
-
-            String un1 = username.split("[\\s:]+")[0];
-            if (un1 == null || un1.equals(""))
-                return new HttpResponse(HttpCode.BadRequest_400, "No auth header");
-
-            String un2 = username.split("[\\s:]+")[1];
-            if (un2 == null || un2.equals(""))
-                return new HttpResponse(HttpCode.BadRequest_400, "No auth header");
+            try {
+                String username = database.Authenticate(t.getRequestHeaders().getFirst("auth"));
+                LOGGER.info("USER: " + username);
 
 
-            username = database.Authenticate(username);
-            LOGGER.info("USER: " + username);
-            if (username == null)
-                return new HttpResponse(HttpCode.Unauthorized_401, "Authentication failed");
+                Pattern pattern = Pattern.compile("^/todo/task/([A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{12})$");
+                Matcher matcher = pattern.matcher(t.getRequestURI().toString());
+                LOGGER.info("Got task from: " + t.getRequestURI().toString());
+
+                if (matcher.matches()) {
+                    LOGGER.info("Got task UUID: " + matcher.group(1));
+                    UUID uuid = UUID.fromString(matcher.group(1));
+
+                    if (!database.TaskExists(uuid))
+                        return new HttpResponse(HttpCode.NotFound_404, "Task with given uuid does not exists");
+
+                    if (!database.TaskBelongsToUser(username, uuid))
+                        return new HttpResponse(HttpCode.Forbidden_403, "Task belongs to other user");
+
+                    try {
+                        TaskEntity newTask = new Gson().fromJson(new String(t.getRequestBody().readAllBytes()), TaskEntity.class);
+
+                        LOGGER.info("Received task to update: " + new Gson().toJson(newTask));
+
+                        if (newTask != null)
+                            if (!newTask.getDescription().equals("")) {
+                                String taskStr = new Gson().toJson(database.UpdateTask(newTask));
+                                return new HttpResponse(HttpCode.OK_200, taskStr);
+                            }
+                    } catch (JsonSyntaxException | IOException e) {
+                        LOGGER.warning(e.getMessage());
+                    }
 
 
-            Pattern pattern = Pattern.compile("^/todo/task/([A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{12})$");
-            Matcher matcher = pattern.matcher(t.getRequestURI().toString());
-            LOGGER.info("Got task from: " + t.getRequestURI().toString());
-
-            if (matcher.matches()) {
-                LOGGER.info("Got task UUID: " + matcher.group(1));
-                UUID uuid = UUID.fromString(matcher.group(1));
-
-                if (!database.TaskExists(uuid))
-                    return new HttpResponse(HttpCode.NotFound_404, "Task with given uuid does not exists");
-
-                if (!database.TaskBelongsToUser(username, uuid))
-                    return new HttpResponse(HttpCode.Forbidden_403, "Task belongs to other user");
-
-                try {
-                    TaskEntity newTask = new Gson().fromJson(new String(t.getRequestBody().readAllBytes()), TaskEntity.class);
-
-                    LOGGER.info("Received task to update: " + new Gson().toJson(newTask));
-
-                    if (newTask != null)
-                        if (!newTask.getDescription().equals("")) {
-                            String taskStr = new Gson().toJson(database.UpdateTask(newTask));
-                            return new HttpResponse(HttpCode.OK_200, taskStr);
-                        }
-                } catch (JsonSyntaxException | IOException e) {
-                    LOGGER.warning(e.getMessage());
                 }
 
+                return new HttpResponse(HttpCode.BadRequest_400, "No task uuid provided");
 
+            } catch (BadRequest badRequest) {
+                return new HttpResponse(HttpCode.BadRequest_400, badRequest.getMessage());
+            } catch (Unauthorized unauthorized) {
+                return new HttpResponse(HttpCode.Unauthorized_401, unauthorized.getMessage());
             }
-
-            return new HttpResponse(HttpCode.BadRequest_400, "Task not found");
         }
 
         @MethodEndPoint(method = HttpMethode.DELETE)
         static HttpResponse taskHandleDelete(HttpExchange t) {
-            String username = t.getRequestHeaders().getFirst("auth");
-            if (username == null || username.equals(""))
-                return new HttpResponse(HttpCode.BadRequest_400, "No auth header");
 
-            if (username.split("[\\s:]+").length != 2)
-                return new HttpResponse(HttpCode.BadRequest_400, "No auth header");
-
-            String un1 = username.split("[\\s:]+")[0];
-            if (un1 == null || un1.equals(""))
-                return new HttpResponse(HttpCode.BadRequest_400, "No auth header");
-
-            String un2 = username.split("[\\s:]+")[1];
-            if (un2 == null || un2.equals(""))
-                return new HttpResponse(HttpCode.BadRequest_400, "No auth header");
+            try {
+                String username = database.Authenticate(t.getRequestHeaders().getFirst("auth"));
+                LOGGER.info("USER: " + username);
 
 
-            username = database.Authenticate(username);
-            LOGGER.info("USER: " + username);
-            if (username == null)
-                return new HttpResponse(HttpCode.Unauthorized_401, "Authentication failed");
+                Pattern pattern = Pattern.compile("^/todo/task/([A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{12})$");
+                Matcher matcher = pattern.matcher(t.getRequestURI().toString());
+                LOGGER.info("Got task from: " + t.getRequestURI().toString());
+
+                if (matcher.matches()) {
+                    LOGGER.info("Got task UUID: " + matcher.group(1));
+                    UUID uuid = UUID.fromString(matcher.group(1));
+
+                    if (!database.TaskExists(uuid))
+                        return new HttpResponse(HttpCode.NotFound_404, "Task with given uuid does not exists");
 
 
-            Pattern pattern = Pattern.compile("^/todo/task/([A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{12})$");
-            Matcher matcher = pattern.matcher(t.getRequestURI().toString());
-            LOGGER.info("Got task from: " + t.getRequestURI().toString());
-
-            if (matcher.matches()) {
-                LOGGER.info("Got task UUID: " + matcher.group(1));
-                UUID uuid = UUID.fromString(matcher.group(1));
-
-                if (!database.TaskExists(uuid))
-                    return new HttpResponse(HttpCode.NotFound_404, "Task with given uuid does not exists");
+                    if (!database.TaskBelongsToUser(username, uuid))
+                        return new HttpResponse(HttpCode.Forbidden_403, "Task belongs to other user");
 
 
-                if (!database.TaskBelongsToUser(username, uuid))
-                    return new HttpResponse(HttpCode.Forbidden_403, "Task belongs to other user");
+                    database.removeTask(uuid);
+                    return new HttpResponse(HttpCode.OK_200, "Task deleted");
 
+                }
 
-                database.removeTask(uuid);
-                return new HttpResponse(HttpCode.OK_200, "Task deleted");
+                return new HttpResponse(HttpCode.BadRequest_400, "No task uuid provided");
 
+            } catch (BadRequest badRequest) {
+                return new HttpResponse(HttpCode.BadRequest_400, badRequest.getMessage());
+            } catch (Unauthorized unauthorized) {
+                return new HttpResponse(HttpCode.Unauthorized_401, unauthorized.getMessage());
             }
-
-            return new HttpResponse(HttpCode.BadRequest_400, "Task not found");
         }
+
     }
 }

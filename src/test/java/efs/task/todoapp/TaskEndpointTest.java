@@ -262,8 +262,8 @@ class TaskEndpointTest {
     @Timeout(1)
     void shouldAddTaskAndReceive3Tasks() throws IOException, InterruptedException {
 
-        String username = "user";
-        String password = "password";
+        String username = "user3";
+        String password = "password3";
 
         //given
         var createUserRequest = HttpRequest.newBuilder()

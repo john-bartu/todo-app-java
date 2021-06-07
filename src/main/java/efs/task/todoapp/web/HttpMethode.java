@@ -5,8 +5,4 @@ public enum HttpMethode {
     GET,
     POST,
     DELETE;
-
-    HttpMethode fromString(String s) {
-        return HttpMethode.valueOf(s);
-    }
 }

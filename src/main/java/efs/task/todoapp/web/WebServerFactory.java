@@ -260,6 +260,18 @@ public class WebServerFactory {
 
             return new HttpResponse().toJson(HttpCode.BadRequest_400, "No required fields for task provided");
         }
+
+        @MethodEndPoint(method = HttpMethode.PUT)
+        static HttpResponse taskHandlePut(Request t)
+        {
+            return new HttpResponse().toJson(HttpCode.BadRequest_400,"");
+        }
+
+        @MethodEndPoint(method = HttpMethode.DELETE)
+        static HttpResponse taskHandleDelete(Request t)
+        {
+            return new HttpResponse().toJson(HttpCode.BadRequest_400,"");
+        }
     }
 
     @URIEndPoint(path = "/todo/task/")

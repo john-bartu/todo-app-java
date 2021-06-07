@@ -43,9 +43,9 @@ class Request {
     }
 
 
-    public String getHeaderAuth(String header) throws BadRequest {
+    public String getHeaderAuth() throws BadRequest {
         if (RequestHeaders.containsKey("Auth")) {
-            String token = RequestHeaders.getOrDefault(header, new ArrayList<>()).get(0);
+            String token = RequestHeaders.getOrDefault("Auth", new ArrayList<>()).get(0);
 
             if (ValidateToken(token)) {
                 return token;

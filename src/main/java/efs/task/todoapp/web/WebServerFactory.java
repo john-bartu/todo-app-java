@@ -164,11 +164,11 @@ public class WebServerFactory {
                 return new HttpResponse(HttpCode.BadRequest_400, "No auth header");
 
             String un1 = username.split("[\\s:]+")[0];
-            if (un1 == null || un1 == "")
+            if (un1 == null || un1.equals(""))
                 return new HttpResponse(HttpCode.BadRequest_400, "No auth header");
 
             String un2 = username.split("[\\s:]+")[1];
-            if (un2 == null || un2 == "")
+            if (un2 == null || un2.equals(""))
                 return new HttpResponse(HttpCode.BadRequest_400, "No auth header");
 
 
@@ -247,11 +247,11 @@ public class WebServerFactory {
                 return new HttpResponse(HttpCode.BadRequest_400, "No auth header");
 
             String un1 = username.split("[\\s:]+")[0];
-            if (un1 == null || un1 == "")
+            if (un1 == null || un1.equals(""))
                 return new HttpResponse(HttpCode.BadRequest_400, "No auth header");
 
             String un2 = username.split("[\\s:]+")[1];
-            if (un2 == null || un2 == "")
+            if (un2 == null || un2.equals(""))
                 return new HttpResponse(HttpCode.BadRequest_400, "No auth header");
 
             username = database.Authenticate(username);
@@ -296,11 +296,11 @@ public class WebServerFactory {
                 return new HttpResponse(HttpCode.BadRequest_400, "Bad auth header");
 
             String un1 = username.split("[\\s:]+")[0];
-            if (un1 == null || un1 == "")
+            if (un1 == null || un1.equals(""))
                 return new HttpResponse(HttpCode.BadRequest_400, "No auth header");
 
             String un2 = username.split("[\\s:]+")[1];
-            if (un2 == null || un2 == "")
+            if (un2 == null || un2.equals(""))
                 return new HttpResponse(HttpCode.BadRequest_400, "No auth header");
 
 
@@ -354,11 +354,11 @@ public class WebServerFactory {
                 return new HttpResponse(HttpCode.BadRequest_400, "No auth header");
 
             String un1 = username.split("[\\s:]+")[0];
-            if (un1 == null || un1 == "")
+            if (un1 == null || un1.equals(""))
                 return new HttpResponse(HttpCode.BadRequest_400, "No auth header");
 
             String un2 = username.split("[\\s:]+")[1];
-            if (un2 == null || un2 == "")
+            if (un2 == null || un2.equals(""))
                 return new HttpResponse(HttpCode.BadRequest_400, "No auth header");
 
 

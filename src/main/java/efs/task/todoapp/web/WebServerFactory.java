@@ -241,12 +241,9 @@ public class WebServerFactory {
 
                     String token = t.getHeaderAuth("Auth");
 
-
-                    String username = database.Authenticate(token);
-                    LOGGER.info("USER: " + username);
-
                     if (newTask.getDescription() != null && !newTask.getDescription().equals("")) {
 
+                        String username = database.Authenticate(token);
                         if (database.AddTask(username, newTask)) {
 
                             return new HttpResponse().toJson(HttpCode.Created_201, "Task added.");
@@ -302,11 +299,9 @@ public class WebServerFactory {
 
                     return new HttpResponse(HttpCode.OK_200, taskStr);
 
-                } else {
-                    LOGGER.info("No matches ");
                 }
 
-                return new HttpResponse().toJson(HttpCode.BadRequest_400, "No task uuid provided");
+                throw new BadRequest("No task uuid provided");
 
             } catch (BadRequest badRequest) {
                 return new HttpResponse().toJson(HttpCode.BadRequest_400, badRequest.getMessage());
@@ -330,15 +325,6 @@ public class WebServerFactory {
 
                     String token = t.getHeaderAuth("Auth");
 
-                    if (!database.TaskExists(uuid))
-                        return new HttpResponse().toJson(HttpCode.NotFound_404, "Task with given uuid does not exists");
-
-                    String username = database.Authenticate(token);
-                    LOGGER.info("USER: " + username);
-
-                    if (!database.TaskBelongsToUser(username, uuid))
-                        return new HttpResponse().toJson(HttpCode.Forbidden_403, "Task belongs to other user");
-
 
                     TaskEntity newTask = new Gson().fromJson(t.getRequestBody(), TaskEntity.class);
 
@@ -347,6 +333,16 @@ public class WebServerFactory {
                     if (newTask != null) {
 
                         newTask.Validate();
+
+                        if (!database.TaskExists(uuid))
+                            return new HttpResponse().toJson(HttpCode.NotFound_404, "Task with given uuid does not exists");
+
+                        String username = database.Authenticate(token);
+                        LOGGER.info("USER: " + username);
+
+                        if (!database.TaskBelongsToUser(username, uuid))
+                            return new HttpResponse().toJson(HttpCode.Forbidden_403, "Task belongs to other user");
+
 
                         if (!newTask.getDescription().equals("")) {
                             String taskStr = new Gson().toJson(database.UpdateTask(newTask));

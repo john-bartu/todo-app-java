@@ -245,7 +245,7 @@ public class WebServerFactory {
                         String username = database.Authenticate(token);
                         if (database.AddTask(username, newTask)) {
 
-                            return new HttpResponse().toJson(HttpCode.Created_201, "{\"id\":\"" + newTask.getId() + "\"}")
+                            return new HttpResponse(HttpCode.Created_201, "{\"id\":\"" + newTask.getId() + "\"}")
                                     ;
                         }
                     }

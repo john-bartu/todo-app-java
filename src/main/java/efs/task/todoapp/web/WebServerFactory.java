@@ -95,7 +95,7 @@ public class WebServerFactory {
             LOGGER.info("[" + request.getRequestMethod() + "]\n"
                     + "URI: " + request.getRequestURI() + "\n"
                     + "HEADERS: " + request.getRequestHeaders().keySet() + "\n"
-                    + "BODY: " + request.getRequestBody()
+                    + "BODY: " + request.getRequestBody() + "\n"
                     + "Auth: " + request.getFirstRequestHeader("Auth")
             );
 
@@ -193,14 +193,18 @@ public class WebServerFactory {
 
                 LOGGER.info("Received task: " + new Gson().toJson(newTask));
 
+
                 if (newTask != null)
-                    if (newTask.getDescription() != null && !newTask.getDescription().equals("")) {
 
-                        if (database.AddTask(username, newTask)) {
+                    newTask.Validate();
 
-                            return new HttpResponse(HttpCode.Created_201, "Task added.");
-                        }
+                if (newTask.getDescription() != null && !newTask.getDescription().equals("")) {
+
+                    if (database.AddTask(username, newTask)) {
+
+                        return new HttpResponse(HttpCode.Created_201, "Task added.");
                     }
+                }
             } catch (JsonSyntaxException e) {
                 return new HttpResponse(HttpCode.BadRequest_400, "JSON Parse error" + e.getMessage());
             } catch (BadRequest badRequest) {
@@ -284,13 +288,18 @@ public class WebServerFactory {
                     try {
                         TaskEntity newTask = new Gson().fromJson(t.getRequestBody(), TaskEntity.class);
 
+
                         LOGGER.info("Received task to update: " + new Gson().toJson(newTask));
 
-                        if (newTask != null)
+                        if (newTask != null) {
+
+                            newTask.Validate();
+
                             if (!newTask.getDescription().equals("")) {
                                 String taskStr = new Gson().toJson(database.UpdateTask(newTask));
                                 return new HttpResponse(HttpCode.OK_200, taskStr);
                             }
+                        }
                     } catch (JsonSyntaxException e) {
                         LOGGER.warning(e.getMessage());
                     }

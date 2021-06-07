@@ -1,7 +1,10 @@
 package efs.task.todoapp.repository;
 
-import com.google.gson.annotations.Expose;
+import efs.task.todoapp.service.BadRequest;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.UUID;
 
 public class TaskEntity {
@@ -61,5 +64,21 @@ public class TaskEntity {
 
     public void assignUUID() {
         id = UUID.randomUUID();
+    }
+
+    public void Validate() throws BadRequest {
+        if (due != null) {
+            SimpleDateFormat sdfrmt = new SimpleDateFormat("yyyy-MM-dd");
+
+            try {
+                Date javaDate = sdfrmt.parse(due);
+                System.out.println(due + " is valid date format");
+            } catch (ParseException e) {
+                System.out.println();
+                throw new BadRequest(due + " is Invalid Date format");
+            }
+
+        }
+
     }
 }

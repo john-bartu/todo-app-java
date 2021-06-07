@@ -10,7 +10,6 @@ public class TaskEntity {
     UUID id;
     String description;
     String due;
-
     public TaskEntity(String description, String due) {
         id = UUID.randomUUID();
         this.description = description;
@@ -19,6 +18,10 @@ public class TaskEntity {
 
     public UUID getId() {
         return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
     }
 
     public String getDescription() {

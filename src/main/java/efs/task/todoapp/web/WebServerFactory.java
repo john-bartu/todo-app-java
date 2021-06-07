@@ -323,13 +323,13 @@ public class WebServerFactory {
                     UUID uuid = UUID.fromString(matcher.group(1));
 
 
-                    TaskEntity newTask = new Gson().fromJson(t.getRequestBody(), TaskEntity.class);
+                    TaskEntity updateTask = new Gson().fromJson(t.getRequestBody(), TaskEntity.class);
 
-                    LOGGER.info("Received task to update: " + new Gson().toJson(newTask));
+                    LOGGER.info("Received task to update: " + new Gson().toJson(updateTask));
 
-                    if (newTask != null && !newTask.getDescription().equals("")) {
+                    if (updateTask != null && !updateTask.getDescription().equals("")) {
 
-                        newTask.Validate();
+                        updateTask.Validate();
 
                         String username = database.Authenticate(token);
                         LOGGER.info("USER: " + username);
@@ -341,7 +341,10 @@ public class WebServerFactory {
                             return new HttpResponse().toJson(HttpCode.NotFound_404, "Task with given uuid does not exists");
 
 
-                        String taskStr = new Gson().toJson(database.UpdateTask(newTask));
+                        updateTask.setId(uuid);
+
+                        String taskStr = new Gson().toJson(database.UpdateTask(updateTask));
+
                         return new HttpResponse(HttpCode.OK_200, taskStr);
 
                     }

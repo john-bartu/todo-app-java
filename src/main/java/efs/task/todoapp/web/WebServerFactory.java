@@ -285,13 +285,12 @@ public class WebServerFactory {
 
 
                     String username = database.Authenticate(token);
-
-                    if (!database.TaskBelongsToUser(username, uuid))
-                        return new HttpResponse().toJson(HttpCode.Forbidden_403, "Task belongs to other user");
-
-
                     if (!database.TaskExists(uuid))
                         return new HttpResponse().toJson(HttpCode.NotFound_404, "Task with given uuid does not exists");
+
+                    if (!database.TaskBelongsToUser(username, uuid)) {
+                        return new HttpResponse().toJson(HttpCode.Forbidden_403, "Task belongs to other user");
+                    }
 
 
                     String taskStr = new Gson().toJson(database.GetTask(uuid));
@@ -327,19 +326,18 @@ public class WebServerFactory {
 
                     LOGGER.info("Received task to update: " + new Gson().toJson(updateTask));
 
-                    if (updateTask != null && !updateTask.getDescription().equals("")) {
+                    if (updateTask != null && updateTask.getDescription() != null && !updateTask.getDescription().equals("")) {
 
                         updateTask.Validate();
 
                         String username = database.Authenticate(token);
                         LOGGER.info("USER: " + username);
 
-                        if (!database.TaskBelongsToUser(username, uuid))
-                            return new HttpResponse().toJson(HttpCode.Forbidden_403, "Task belongs to other user");
-
                         if (!database.TaskExists(uuid))
                             return new HttpResponse().toJson(HttpCode.NotFound_404, "Task with given uuid does not exists");
 
+                        if (!database.TaskBelongsToUser(username, uuid))
+                            return new HttpResponse().toJson(HttpCode.Forbidden_403, "Task belongs to other user");
 
                         updateTask.setId(uuid);
 
@@ -375,11 +373,12 @@ public class WebServerFactory {
 
                     String username = database.Authenticate(token);
 
-                    if (!database.TaskBelongsToUser(username, uuid))
-                        return new HttpResponse().toJson(HttpCode.Forbidden_403, "Task belongs to other user");
-
                     if (!database.TaskExists(uuid))
                         return new HttpResponse().toJson(HttpCode.NotFound_404, "Task with given uuid does not exists");
+
+                    if (!database.TaskBelongsToUser(username, uuid)) {
+                        return new HttpResponse().toJson(HttpCode.Forbidden_403, "Task belongs to other user");
+                    }
 
 
                     database.removeTask(uuid);

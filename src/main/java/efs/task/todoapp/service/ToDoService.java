@@ -89,7 +89,6 @@ public class ToDoService {
 
     public boolean TaskBelongsToUser(String username, UUID uuid) {
         boolean check = taskUserMap.get(uuid).equals(username);
-        ;
         LOGGER.info("Checking if task: { " + uuid + " } belongs to user: {" + username + "} ?" + check);
         return check;
     }

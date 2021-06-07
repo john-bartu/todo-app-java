@@ -146,14 +146,30 @@ public class WebServerFactory {
             try {
                 if (methodHashMap.containsKey(requestMethode)) {
                     LOGGER.info("Method found " + methodHashMap.get(requestMethode).getName());
+
+
                     httpResponse = (HttpResponse) methodHashMap.get(requestMethode).invoke(null, request);
+
+
                 }
-            } catch (IllegalAccessException | InvocationTargetException e) {
+            } catch (IllegalAccessException e) {
                 e.printStackTrace();
+            } catch (InvocationTargetException e) {
+                try {
+                    throw e.getCause();
+                } catch (JsonSyntaxException jsonSyntaxException) {
+                    httpResponse = new HttpResponse().toJson(HttpCode.BadRequest_400, "JSON Parse error" + e.getMessage());
+                } catch (BadRequest badRequest) {
+                    httpResponse = new HttpResponse().toJson(HttpCode.BadRequest_400, badRequest.getMessage());
+                } catch (Unauthorized unauthorized) {
+                    httpResponse = new HttpResponse().toJson(HttpCode.Unauthorized_401, unauthorized.getMessage());
+                } catch (Throwable throwable) {
+                    throwable.printStackTrace();
+                }
             }
 
-            LOGGER.info("SERVER:\n[" + httpResponse.httpCode.rCode + "]: " + httpResponse.httpResponse);
 
+            LOGGER.info("SERVER:\n[" + httpResponse.httpCode.rCode + "]: " + httpResponse.httpResponse);
             httpExchange.sendResponseHeaders(httpResponse.httpCode.rCode, httpResponse.getSize());
             httpExchange.getResponseHeaders().add("Content-type", "application/json");
             OutputStream os = httpExchange.getResponseBody();
@@ -178,23 +194,19 @@ public class WebServerFactory {
         @MethodEndPoint(method = HttpMethode.POST)
         static HttpResponse userHandlePost(Request t) {
 
-            try {
 
-                UserEntity newUser = new Gson().fromJson(t.getRequestBody(), UserEntity.class);
-                LOGGER.info("Received user: " + new Gson().toJson(newUser));
+            UserEntity newUser = new Gson().fromJson(t.getRequestBody(), UserEntity.class);
+            LOGGER.info("Received user: " + new Gson().toJson(newUser));
 
-                if (newUser != null && newUser.getUsername() != null && newUser.getPassword() != null)
-                    if (!newUser.getUsername().equals("") && !newUser.getPassword().equals("")) {
-                        if (database.AddUser(newUser)) {
-                            return new HttpResponse().toJson(HttpCode.Created_201, "User added");
-                        } else {
-                            return new HttpResponse().toJson(HttpCode.Conflict_409, "User with given login exists");
-                        }
+            if (newUser != null && newUser.getUsername() != null && newUser.getPassword() != null)
+                if (!newUser.getUsername().equals("") && !newUser.getPassword().equals("")) {
+                    if (database.AddUser(newUser)) {
+                        return new HttpResponse().toJson(HttpCode.Created_201, "User added");
+                    } else {
+                        return new HttpResponse().toJson(HttpCode.Conflict_409, "User with given login exists");
                     }
+                }
 
-            } catch (JsonSyntaxException e) {
-                LOGGER.warning(e.getMessage());
-            }
 
             return new HttpResponse().toJson(HttpCode.BadRequest_400, "No required fields for user");
         }
@@ -208,69 +220,55 @@ public class WebServerFactory {
         }
 
         @MethodEndPoint(method = HttpMethode.GET)
-        static HttpResponse taskHandleGet(Request t) {
-            try {
-                String token = t.getHeaderAuth();
+        static HttpResponse taskHandleGet(Request t) throws BadRequest, Unauthorized, JsonSyntaxException {
+
+            String token = t.getHeaderAuth();
 
 
-                String username = database.Authenticate(token);
-                LOGGER.info("USER: " + username);
+            String username = database.Authenticate(token);
+            LOGGER.info("USER: " + username);
 
-                List<TaskEntity> taskEntities = database.GetTasks(username);
+            List<TaskEntity> taskEntities = database.GetTasks(username);
 
-                return new HttpResponse(HttpCode.OK_200, new Gson().toJson(taskEntities));
-            } catch (BadRequest badRequest) {
-                return new HttpResponse().toJson(HttpCode.BadRequest_400, badRequest.getMessage());
-            } catch (Unauthorized unauthorized) {
-                return new HttpResponse().toJson(HttpCode.Unauthorized_401, unauthorized.getMessage());
-            }
+            return new HttpResponse(HttpCode.OK_200, new Gson().toJson(taskEntities));
+
 
         }
 
         @MethodEndPoint(method = HttpMethode.POST)
-        static HttpResponse taskHandlePost(Request t) {
-            try {
+        static HttpResponse taskHandlePost(Request t) throws BadRequest, Unauthorized, JsonSyntaxException {
 
-                TaskEntity newTask = new Gson().fromJson(t.getRequestBody(), TaskEntity.class);
+            TaskEntity newTask = new Gson().fromJson(t.getRequestBody(), TaskEntity.class);
 
-                LOGGER.info("Received task: " + new Gson().toJson(newTask));
-                String token = t.getHeaderAuth();
-                if (newTask != null) {
+            LOGGER.info("Received task: " + new Gson().toJson(newTask));
+            String token = t.getHeaderAuth();
+            if (newTask != null) {
 
-                    newTask.Validate();
+                newTask.Validate();
 
+                if (newTask.getDescription() != null && !newTask.getDescription().equals("")) {
 
-                    if (newTask.getDescription() != null && !newTask.getDescription().equals("")) {
+                    String username = database.Authenticate(token);
+                    if (database.AddTask(username, newTask)) {
 
-                        String username = database.Authenticate(token);
-                        if (database.AddTask(username, newTask)) {
-
-                            return new HttpResponse(HttpCode.Created_201, "{\"id\":\"" + newTask.getId() + "\"}")
-                                    ;
-                        }
+                        return new HttpResponse(HttpCode.Created_201, "{\"id\":\"" + newTask.getId() + "\"}")
+                                ;
                     }
                 }
-            } catch (JsonSyntaxException e) {
-                return new HttpResponse().toJson(HttpCode.BadRequest_400, "JSON Parse error" + e.getMessage());
-            } catch (BadRequest badRequest) {
-                return new HttpResponse().toJson(HttpCode.BadRequest_400, badRequest.getMessage());
-            } catch (Unauthorized unauthorized) {
-                return new HttpResponse().toJson(HttpCode.Unauthorized_401, unauthorized.getMessage());
             }
+
 
             return new HttpResponse().toJson(HttpCode.BadRequest_400, "No required fields for task provided");
         }
 
         @MethodEndPoint(method = HttpMethode.PUT)
-        static HttpResponse taskHandlePut(Request t)
-        {
-            return new HttpResponse().toJson(HttpCode.BadRequest_400,"");
+        static HttpResponse taskHandlePut(Request t) throws BadRequest, Unauthorized, JsonSyntaxException {
+            return new HttpResponse().toJson(HttpCode.BadRequest_400, "");
         }
 
         @MethodEndPoint(method = HttpMethode.DELETE)
-        static HttpResponse taskHandleDelete(Request t)
-        {
-            return new HttpResponse().toJson(HttpCode.BadRequest_400,"");
+        static HttpResponse taskHandleDelete(Request t) throws BadRequest, Unauthorized, JsonSyntaxException {
+            return new HttpResponse().toJson(HttpCode.BadRequest_400, "");
         }
     }
 
@@ -284,128 +282,112 @@ public class WebServerFactory {
 
 
         @MethodEndPoint(method = HttpMethode.GET)
-        static HttpResponse taskHandleGet(Request t) {
-            try {
+        static HttpResponse taskHandleGet(Request t) throws BadRequest, Unauthorized, JsonSyntaxException {
 
-                Matcher matcher = pattern.matcher(t.getRequestURI());
-                LOGGER.info("Got task from: " + t.getRequestURI());
-                String token = t.getHeaderAuth();
 
-                if (matcher.matches()) {
-                    LOGGER.info("Got task UUID: " + matcher.group(1));
-                    UUID uuid = UUID.fromString(matcher.group(1));
+            Matcher matcher = pattern.matcher(t.getRequestURI());
+            LOGGER.info("Got task from: " + t.getRequestURI());
+            String token = t.getHeaderAuth();
 
+            if (matcher.matches()) {
+                LOGGER.info("Got task UUID: " + matcher.group(1));
+                UUID uuid = UUID.fromString(matcher.group(1));
+
+
+                String username = database.Authenticate(token);
+                if (!database.TaskExists(uuid))
+                    return new HttpResponse().toJson(HttpCode.NotFound_404, "Task with given uuid does not exists");
+
+                if (!database.TaskBelongsToUser(username, uuid)) {
+                    return new HttpResponse().toJson(HttpCode.Forbidden_403, "Task belongs to other user");
+                }
+
+
+                String taskStr = new Gson().toJson(database.GetTask(uuid));
+
+                return new HttpResponse(HttpCode.OK_200, taskStr);
+
+            }
+
+            throw new BadRequest("No task uuid provided");
+
+
+        }
+
+        @MethodEndPoint(method = HttpMethode.PUT)
+        static HttpResponse taskHandlePut(Request t) throws BadRequest, Unauthorized, JsonSyntaxException {
+
+
+            Matcher matcher = pattern.matcher(t.getRequestURI());
+            LOGGER.info("Got task from: " + t.getRequestURI());
+            String token = t.getHeaderAuth();
+            if (matcher.matches()) {
+
+                LOGGER.info("Got task UUID: " + matcher.group(1));
+                UUID uuid = UUID.fromString(matcher.group(1));
+
+
+                TaskEntity updateTask = new Gson().fromJson(t.getRequestBody(), TaskEntity.class);
+
+                LOGGER.info("Received task to update: " + new Gson().toJson(updateTask));
+
+                if (updateTask != null && updateTask.getDescription() != null && !updateTask.getDescription().equals("")) {
+
+                    updateTask.Validate();
 
                     String username = database.Authenticate(token);
+                    LOGGER.info("USER: " + username);
+
                     if (!database.TaskExists(uuid))
                         return new HttpResponse().toJson(HttpCode.NotFound_404, "Task with given uuid does not exists");
 
-                    if (!database.TaskBelongsToUser(username, uuid)) {
+                    if (!database.TaskBelongsToUser(username, uuid))
                         return new HttpResponse().toJson(HttpCode.Forbidden_403, "Task belongs to other user");
-                    }
 
+                    updateTask.setId(uuid);
 
-                    String taskStr = new Gson().toJson(database.GetTask(uuid));
+                    String taskStr = new Gson().toJson(database.UpdateTask(updateTask));
 
                     return new HttpResponse(HttpCode.OK_200, taskStr);
 
                 }
-
-                throw new BadRequest("No task uuid provided");
-
-            } catch (BadRequest badRequest) {
-                return new HttpResponse().toJson(HttpCode.BadRequest_400, badRequest.getMessage());
-            } catch (Unauthorized unauthorized) {
-                return new HttpResponse().toJson(HttpCode.Unauthorized_401, unauthorized.getMessage());
             }
-        }
 
-        @MethodEndPoint(method = HttpMethode.PUT)
-        static HttpResponse taskHandlePut(Request t) {
+            throw new BadRequest("No task uuid or body provided");
 
-            try {
-
-                Matcher matcher = pattern.matcher(t.getRequestURI());
-                LOGGER.info("Got task from: " + t.getRequestURI());
-                String token = t.getHeaderAuth();
-                if (matcher.matches()) {
-
-                    LOGGER.info("Got task UUID: " + matcher.group(1));
-                    UUID uuid = UUID.fromString(matcher.group(1));
-
-
-                    TaskEntity updateTask = new Gson().fromJson(t.getRequestBody(), TaskEntity.class);
-
-                    LOGGER.info("Received task to update: " + new Gson().toJson(updateTask));
-
-                    if (updateTask != null && updateTask.getDescription() != null && !updateTask.getDescription().equals("")) {
-
-                        updateTask.Validate();
-
-                        String username = database.Authenticate(token);
-                        LOGGER.info("USER: " + username);
-
-                        if (!database.TaskExists(uuid))
-                            return new HttpResponse().toJson(HttpCode.NotFound_404, "Task with given uuid does not exists");
-
-                        if (!database.TaskBelongsToUser(username, uuid))
-                            return new HttpResponse().toJson(HttpCode.Forbidden_403, "Task belongs to other user");
-
-                        updateTask.setId(uuid);
-
-                        String taskStr = new Gson().toJson(database.UpdateTask(updateTask));
-
-                        return new HttpResponse(HttpCode.OK_200, taskStr);
-
-                    }
-                }
-
-                throw new BadRequest("No task uuid or body provided");
-
-            } catch (BadRequest | JsonSyntaxException badRequest) {
-                return new HttpResponse().toJson(HttpCode.BadRequest_400, badRequest.getMessage());
-            } catch (Unauthorized unauthorized) {
-                return new HttpResponse().toJson(HttpCode.Unauthorized_401, unauthorized.getMessage());
-            }
         }
 
         @MethodEndPoint(method = HttpMethode.DELETE)
-        static HttpResponse taskHandleDelete(Request t) {
-
-            try {
-
-                Matcher matcher = pattern.matcher(t.getRequestURI());
-                LOGGER.info("Got task from: " + t.getRequestURI());
-                String token = t.getHeaderAuth();
-
-                if (matcher.matches()) {
-                    LOGGER.info("Got task UUID: " + matcher.group(1));
-                    UUID uuid = UUID.fromString(matcher.group(1));
+        static HttpResponse taskHandleDelete(Request t) throws BadRequest, Unauthorized, JsonSyntaxException {
 
 
-                    String username = database.Authenticate(token);
+            Matcher matcher = pattern.matcher(t.getRequestURI());
+            LOGGER.info("Got task from: " + t.getRequestURI());
+            String token = t.getHeaderAuth();
 
-                    if (!database.TaskExists(uuid))
-                        return new HttpResponse().toJson(HttpCode.NotFound_404, "Task with given uuid does not exists");
-
-                    if (!database.TaskBelongsToUser(username, uuid)) {
-                        return new HttpResponse().toJson(HttpCode.Forbidden_403, "Task belongs to other user");
-                    }
+            if (matcher.matches()) {
+                LOGGER.info("Got task UUID: " + matcher.group(1));
+                UUID uuid = UUID.fromString(matcher.group(1));
 
 
-                    database.removeTask(uuid);
+                String username = database.Authenticate(token);
 
-                    return new HttpResponse().toJson(HttpCode.OK_200, "Task deleted");
+                if (!database.TaskExists(uuid))
+                    return new HttpResponse().toJson(HttpCode.NotFound_404, "Task with given uuid does not exists");
 
+                if (!database.TaskBelongsToUser(username, uuid)) {
+                    return new HttpResponse().toJson(HttpCode.Forbidden_403, "Task belongs to other user");
                 }
 
-                throw new BadRequest("No task uuid provided");
 
-            } catch (BadRequest badRequest) {
-                return new HttpResponse().toJson(HttpCode.BadRequest_400, badRequest.getMessage());
-            } catch (Unauthorized unauthorized) {
-                return new HttpResponse().toJson(HttpCode.Unauthorized_401, unauthorized.getMessage());
+                database.removeTask(uuid);
+
+                return new HttpResponse().toJson(HttpCode.OK_200, "Task deleted");
+
             }
+
+            throw new BadRequest("No task uuid provided");
+
         }
     }
 

@@ -15,8 +15,8 @@ class HttpResponse {
     }
 
     public HttpResponse toJson(HttpCode code, String data) {
-//        httpResponse = "{\"data\":\"" + data + "\"}";
-        httpResponse = "";
+        httpResponse = "{\"data\":\"" + data + "\"}";
+//        httpResponse = "";
         httpCode = code;
         return this;
     }

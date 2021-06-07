@@ -257,4 +257,66 @@ class TaskEndpointTest {
         var httpResponseTask = httpClient.send(getTaskRequest, ofString());
         assertThat(httpResponseTask.statusCode()).as("Response get task").isEqualTo(HttpCode.NotFound_404.getrCode());
     }
+
+    @Test
+    @Timeout(1)
+    void shouldAddTaskAndReceive3Tasks() throws IOException, InterruptedException {
+
+        String username = "user";
+        String password = "password";
+
+        //given
+        var createUserRequest = HttpRequest.newBuilder()
+                .uri(URI.create(TODO_APP_PATH + "/user"))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString("{\"username\": \"" + username + "\", \"password\": \"" + password + "\"}"))
+                .build();
+
+        //when
+        var httpResponseUser = httpClient.send(createUserRequest, ofString());
+
+        //then
+        assertThat(httpResponseUser.statusCode()).as("Response create user").isEqualTo(HttpCode.Created_201.getrCode());
+
+        StringBuilder token = new StringBuilder();
+        token.append(Base64.getEncoder().encodeToString(username.getBytes()));
+        token.append(":");
+        token.append(Base64.getEncoder().encodeToString(password.getBytes()));
+
+        System.out.println("HASH: " + token);
+
+        for (int i = 0; i < 3; i++) {
+
+            var createTaskRequest = HttpRequest.newBuilder()
+                    .uri(URI.create(TODO_APP_PATH + "/task"))
+                    .header("Content-Type", "application/json")
+                    .header("Auth", token.toString())
+                    .POST(HttpRequest.BodyPublishers.ofString("{\"description\": \"TASK:" + i + "\",\"due\": \"2021-06-30\"}"))
+                    .build();
+
+            var httpResponseTask = httpClient.send(createTaskRequest, ofString());
+            //then
+            assertThat(httpResponseTask.statusCode()).as("Response create task for user").isEqualTo(HttpCode.Created_201.getrCode());
+
+
+        }
+        var listTaskRequest = HttpRequest.newBuilder()
+                .uri(URI.create(TODO_APP_PATH + "/task"))
+                .header("Content-Type", "application/json")
+                .header("Auth", token.toString())
+                .GET()
+                .build();
+
+        //when
+        var httpResponseTaskList = httpClient.send(listTaskRequest, ofString());
+
+        //then
+        assertThat(httpResponseTaskList.statusCode()).as("Response create task for user").isEqualTo(HttpCode.OK_200.getrCode());
+
+        TaskEntity[] taskEntities = new Gson().fromJson(httpResponseTaskList.body(), TaskEntity[].class);
+        List<TaskEntity> taskEntityList = Arrays.asList(taskEntities);
+        assertThat(taskEntityList.size()).as("Response create task for user").isEqualTo(3);
+
+
+    }
 }

@@ -5,9 +5,7 @@ import com.google.gson.annotations.Expose;
 import java.util.UUID;
 
 public class TaskEntity {
-    @Expose(deserialize = false)
     UUID id;
-
     String description;
     String due;
 

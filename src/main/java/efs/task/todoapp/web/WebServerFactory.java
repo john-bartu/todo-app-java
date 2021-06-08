@@ -198,7 +198,7 @@ public class WebServerFactory {
             UserEntity newUser = new Gson().fromJson(t.getRequestBody(), UserEntity.class);
             LOGGER.info("Received user: " + new Gson().toJson(newUser));
 
-            if (newUser.Validate()) {
+            if (UserEntity.Validate(newUser)) {
 
                 if (database.AddUser(newUser)) {
                     return new HttpResponse().toJson(HttpCode.Created_201, "User added");
@@ -214,8 +214,10 @@ public class WebServerFactory {
 
     }
 
+    @SuppressWarnings("unused")
     @URIEndPoint(path = "/todo/task")
     static class TodoTasksEndpoint extends EndpointDefault {
+
         TodoTasksEndpoint() {
             InitMethodEndpoints(this);
         }
@@ -243,7 +245,7 @@ public class WebServerFactory {
             LOGGER.info("Received task: " + new Gson().toJson(newTask));
             String token = t.getHeaderAuth();
 
-            if (newTask.Validate()) {
+            if (TaskEntity.Validate(newTask)) {
                 String username = database.Authenticate(token);
                 if (database.AddTask(username, newTask)) {
                     return new HttpResponse(HttpCode.Created_201, "{\"id\":\"" + newTask.getId() + "\"}");
@@ -264,10 +266,12 @@ public class WebServerFactory {
         }
     }
 
+    @SuppressWarnings("unused")
     @URIEndPoint(path = "/todo/task/")
     static class TodoTaskEndpoint extends EndpointDefault {
         static Pattern pattern = Pattern.compile("^/todo/task/([A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{12})$");
 
+        @SuppressWarnings("unused")
         TodoTaskEndpoint() {
             InitMethodEndpoints(this);
         }
@@ -323,7 +327,7 @@ public class WebServerFactory {
 
                 LOGGER.info("Received task to update: " + new Gson().toJson(updateTask));
 
-                if (updateTask.Validate()) {
+                if (TaskEntity.Validate(updateTask)) {
 
                     String username = database.Authenticate(token);
                     LOGGER.info("USER: " + username);
@@ -380,6 +384,5 @@ public class WebServerFactory {
 
         }
     }
-
 }
 

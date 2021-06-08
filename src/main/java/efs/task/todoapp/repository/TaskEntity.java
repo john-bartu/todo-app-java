@@ -17,6 +17,33 @@ public class TaskEntity {
         this.due = due;
     }
 
+    public static boolean Validate(TaskEntity taskEntity) throws BadRequest {
+
+        if (taskEntity == null) {
+            throw new BadRequest("Validation: Task in sull");
+        }
+
+
+        if (taskEntity.getDescription() == null || taskEntity.getDescription().equals("")) {
+            throw new BadRequest("Validation: Description not provided");
+        }
+
+        if (taskEntity.due != null) {
+            SimpleDateFormat sdfrmt = new SimpleDateFormat("yyyy-MM-dd");
+            sdfrmt.setLenient(false);
+            System.out.println(taskEntity.due + " is valid Date Format");
+            try {
+                sdfrmt.parse(taskEntity.due);
+            } catch (ParseException e) {
+                throw new BadRequest(taskEntity.due + " is Invalid Date format");
+            }
+
+        }
+
+        return true;
+
+    }
+
     public UUID getId() {
         return id;
     }
@@ -67,27 +94,5 @@ public class TaskEntity {
 
     public void assignUUID() {
         id = UUID.randomUUID();
-    }
-
-    public boolean Validate() throws BadRequest {
-
-        if (due != null) {
-            SimpleDateFormat sdfrmt = new SimpleDateFormat("yyyy-MM-dd");
-            sdfrmt.setLenient(false);
-            System.out.println(due + " is valid Date Format");
-            try {
-                sdfrmt.parse(due);
-            } catch (ParseException e) {
-                throw new BadRequest(due + " is Invalid Date format");
-            }
-
-        }
-
-        if (getDescription() == null || getDescription().equals("")) {
-            throw new BadRequest("Validation: Description not provided");
-        }
-
-        return true;
-
     }
 }

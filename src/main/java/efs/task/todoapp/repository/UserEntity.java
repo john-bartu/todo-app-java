@@ -13,6 +13,24 @@ public class UserEntity {
         this.password = password;
     }
 
+    public static boolean Validate(UserEntity userEntity) throws BadRequest {
+
+        if (userEntity == null) {
+            throw new BadRequest("Validation: UserEntity is null");
+        }
+
+        if (userEntity.getUsername() == null || userEntity.getUsername().equals("")) {
+            throw new BadRequest("Validation: Username not provided");
+        }
+
+        if (userEntity.getPassword() == null || userEntity.getPassword().equals("")) {
+            throw new BadRequest("Validation: Password not provided");
+        }
+
+        return true;
+
+    }
+
     public String getUsername() {
         return username;
     }
@@ -24,7 +42,6 @@ public class UserEntity {
     public String getPassword() {
         return password;
     }
-
 
     @Override
     public boolean equals(Object o) {
@@ -48,19 +65,5 @@ public class UserEntity {
         token.append(Base64.getEncoder().encodeToString(password.getBytes()));
 
         return token.toString();
-    }
-
-    public boolean Validate() throws BadRequest {
-
-        if (getUsername() == null || getUsername().equals("")) {
-            throw new BadRequest("Validation: Username not provided");
-        }
-
-        if (getPassword() == null || getPassword().equals("")) {
-            throw new BadRequest("Validation: Password not provided");
-        }
-
-        return true;
-
     }
 }

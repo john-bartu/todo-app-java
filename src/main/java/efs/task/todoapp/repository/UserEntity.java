@@ -1,5 +1,7 @@
 package efs.task.todoapp.repository;
 
+import efs.task.todoapp.service.BadRequest;
+
 import java.util.Base64;
 
 public class UserEntity {
@@ -46,5 +48,19 @@ public class UserEntity {
         token.append(Base64.getEncoder().encodeToString(password.getBytes()));
 
         return token.toString();
+    }
+
+    public boolean Validate() throws BadRequest {
+
+        if (getUsername() == null || getUsername().equals("")) {
+            throw new BadRequest("Validation: Username not provided");
+        }
+
+        if (getPassword() == null || getPassword().equals("")) {
+            throw new BadRequest("Validation: Password not provided");
+        }
+
+        return true;
+
     }
 }

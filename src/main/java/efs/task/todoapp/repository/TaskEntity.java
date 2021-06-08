@@ -10,6 +10,7 @@ public class TaskEntity {
     UUID id;
     String description;
     String due;
+
     public TaskEntity(String description, String due) {
         id = UUID.randomUUID();
         this.description = description;
@@ -68,7 +69,7 @@ public class TaskEntity {
         id = UUID.randomUUID();
     }
 
-    public void Validate() throws BadRequest {
+    public boolean Validate() throws BadRequest {
 
         if (due != null) {
             SimpleDateFormat sdfrmt = new SimpleDateFormat("yyyy-MM-dd");
@@ -81,6 +82,12 @@ public class TaskEntity {
             }
 
         }
+
+        if (getDescription() == null || getDescription().equals("")) {
+            throw new BadRequest("Validation: Description not provided");
+        }
+
+        return true;
 
     }
 }

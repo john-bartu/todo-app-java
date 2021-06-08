@@ -192,23 +192,24 @@ public class WebServerFactory {
         }
 
         @MethodEndPoint(method = HttpMethode.POST)
-        static HttpResponse userHandlePost(Request t) {
+        static HttpResponse userHandlePost(Request t) throws BadRequest {
 
 
             UserEntity newUser = new Gson().fromJson(t.getRequestBody(), UserEntity.class);
             LOGGER.info("Received user: " + new Gson().toJson(newUser));
 
-            if (newUser != null && newUser.getUsername() != null && newUser.getPassword() != null)
-                if (!newUser.getUsername().equals("") && !newUser.getPassword().equals("")) {
-                    if (database.AddUser(newUser)) {
-                        return new HttpResponse().toJson(HttpCode.Created_201, "User added");
-                    } else {
-                        return new HttpResponse().toJson(HttpCode.Conflict_409, "User with given login exists");
-                    }
+            if (newUser.Validate()) {
+
+                if (database.AddUser(newUser)) {
+                    return new HttpResponse().toJson(HttpCode.Created_201, "User added");
+                } else {
+                    return new HttpResponse().toJson(HttpCode.Conflict_409, "User with given login exists");
                 }
 
 
-            return new HttpResponse().toJson(HttpCode.BadRequest_400, "No required fields for user");
+            } else {
+                return new HttpResponse().toJson(HttpCode.BadRequest_400, "No required fields for user");
+            }
         }
 
     }
@@ -223,7 +224,6 @@ public class WebServerFactory {
         static HttpResponse taskHandleGet(Request t) throws BadRequest, Unauthorized, JsonSyntaxException {
 
             String token = t.getHeaderAuth();
-
 
             String username = database.Authenticate(token);
             LOGGER.info("USER: " + username);
@@ -242,21 +242,13 @@ public class WebServerFactory {
 
             LOGGER.info("Received task: " + new Gson().toJson(newTask));
             String token = t.getHeaderAuth();
-            if (newTask != null) {
 
-                newTask.Validate();
-
-                if (newTask.getDescription() != null && !newTask.getDescription().equals("")) {
-
-                    String username = database.Authenticate(token);
-                    if (database.AddTask(username, newTask)) {
-
-                        return new HttpResponse(HttpCode.Created_201, "{\"id\":\"" + newTask.getId() + "\"}")
-                                ;
-                    }
+            if (newTask.Validate()) {
+                String username = database.Authenticate(token);
+                if (database.AddTask(username, newTask)) {
+                    return new HttpResponse(HttpCode.Created_201, "{\"id\":\"" + newTask.getId() + "\"}");
                 }
             }
-
 
             return new HttpResponse().toJson(HttpCode.BadRequest_400, "No required fields for task provided");
         }
@@ -331,9 +323,7 @@ public class WebServerFactory {
 
                 LOGGER.info("Received task to update: " + new Gson().toJson(updateTask));
 
-                if (updateTask != null && updateTask.getDescription() != null && !updateTask.getDescription().equals("")) {
-
-                    updateTask.Validate();
+                if (updateTask.Validate()) {
 
                     String username = database.Authenticate(token);
                     LOGGER.info("USER: " + username);

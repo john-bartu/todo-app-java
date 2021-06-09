@@ -17,6 +17,7 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 
+import static efs.task.todoapp.util.TestUtils.creteToken;
 import static java.net.http.HttpResponse.BodyHandlers.ofString;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -208,11 +209,7 @@ class TaskEndpointTest {
         String username = "user";
         String password = "password";
 
-
-        StringBuilder token = new StringBuilder();
-        token.append(Base64.getEncoder().encodeToString(username.getBytes()));
-        token.append(":");
-        token.append(Base64.getEncoder().encodeToString(password.getBytes()));
+        String token = creteToken(username, password);
 
         System.out.println("HASH: " + token);
 
@@ -220,7 +217,7 @@ class TaskEndpointTest {
         var listTaskRequest = HttpRequest.newBuilder()
                 .uri(URI.create(TODO_APP_PATH + "/task"))
                 .header("Content-Type", "application/json")
-                .header("Auth", token.toString())
+                .header("Auth", token)
                 .GET()
                 .build();
 
@@ -237,7 +234,7 @@ class TaskEndpointTest {
         var getTaskRequest = HttpRequest.newBuilder()
                 .uri(URI.create(TODO_APP_PATH + "/task/" + taskEntities[0].getId()))
                 .header("Content-Type", "application/json")
-                .header("Auth", token.toString())
+                .header("Auth", token)
                 .GET()
                 .build();
 
@@ -254,11 +251,7 @@ class TaskEndpointTest {
         String username = "user";
         String password = "password";
 
-
-        StringBuilder token = new StringBuilder();
-        token.append(Base64.getEncoder().encodeToString(username.getBytes()));
-        token.append(":");
-        token.append(Base64.getEncoder().encodeToString(password.getBytes()));
+        String token = creteToken(username, password);
 
         System.out.println("HASH: " + token);
 
@@ -266,7 +259,7 @@ class TaskEndpointTest {
         var listTaskRequest = HttpRequest.newBuilder()
                 .uri(URI.create(TODO_APP_PATH + "/task"))
                 .header("Content-Type", "application/json")
-                .header("Auth", token.toString())
+                .header("Auth", token)
                 .GET()
                 .build();
 
@@ -283,7 +276,7 @@ class TaskEndpointTest {
         var deleteTaskRequest = HttpRequest.newBuilder()
                 .uri(URI.create(TODO_APP_PATH + "/task/" + taskEntities[0].getId()))
                 .header("Content-Type", "application/json")
-                .header("Auth", token.toString())
+                .header("Auth", token)
                 .DELETE()
                 .build();
 
@@ -295,7 +288,7 @@ class TaskEndpointTest {
         var getTaskRequest = HttpRequest.newBuilder()
                 .uri(URI.create(TODO_APP_PATH + "/task/" + taskEntities[0].getId()))
                 .header("Content-Type", "application/json")
-                .header("Auth", token.toString())
+                .header("Auth", token)
                 .GET()
                 .build();
 
@@ -324,10 +317,7 @@ class TaskEndpointTest {
         //then
         assertThat(httpResponseUser.statusCode()).as("Response create user").isEqualTo(HttpCode.CREATED_201.getrCode());
 
-        StringBuilder token = new StringBuilder();
-        token.append(Base64.getEncoder().encodeToString(username.getBytes()));
-        token.append(":");
-        token.append(Base64.getEncoder().encodeToString(password.getBytes()));
+        String token = creteToken(username, password);
 
         System.out.println("HASH: " + token);
 
@@ -336,7 +326,7 @@ class TaskEndpointTest {
             var createTaskRequest = HttpRequest.newBuilder()
                     .uri(URI.create(TODO_APP_PATH + "/task"))
                     .header("Content-Type", "application/json")
-                    .header("Auth", token.toString())
+                    .header("Auth", token)
                     .POST(HttpRequest.BodyPublishers.ofString("{\"description\": \"TASK:" + i + "\",\"due\": \"2021-06-30\"}"))
                     .build();
 
@@ -349,7 +339,7 @@ class TaskEndpointTest {
         var listTaskRequest = HttpRequest.newBuilder()
                 .uri(URI.create(TODO_APP_PATH + "/task"))
                 .header("Content-Type", "application/json")
-                .header("Auth", token.toString())
+                .header("Auth", token)
                 .GET()
                 .build();
 

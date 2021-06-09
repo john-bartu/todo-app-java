@@ -16,8 +16,10 @@ import java.net.http.HttpRequest;
 import java.util.Base64;
 import java.util.UUID;
 
+import static efs.task.todoapp.util.TestUtils.*;
 import static java.net.http.HttpResponse.BodyHandlers.ofString;
 import static org.assertj.core.api.Assertions.assertThat;
+
 
 @ExtendWith(ToDoServerExtension.class)
 class CombainedTest {
@@ -25,6 +27,7 @@ class CombainedTest {
     public static final String TODO_APP_PATH = "http://localhost:8080/todo";
 
     private HttpClient httpClient;
+
 
     @BeforeEach
     void setUp() {
@@ -106,30 +109,23 @@ class CombainedTest {
         return new TestTaskResponse(httpResponseTask.statusCode(), taskEntity);
     }
 
-    String randomLogin() {
-        return UUID.randomUUID().toString().split("-")[0];
-    }
 
     @Test
     @Timeout(1)
     void Should_AddUser_AddTask_GetTask() throws IOException, InterruptedException {
         String login = randomLogin();
         String password = randomLogin();
+        String token = creteToken(login, password);
 
-        StringBuilder token = new StringBuilder();
-        token.append(Base64.getEncoder().encodeToString(login.getBytes()));
-        token.append(":");
-        token.append(Base64.getEncoder().encodeToString(password.getBytes()));
+        TestResponse addUserResponse = addUser(login, password);
 
-        TestResponse resposne = addUser(login, password);
+        assertThat(addUserResponse.code).isEqualTo(HttpCode.CREATED_201.getrCode());
 
-        assertThat(resposne.code).isEqualTo(HttpCode.CREATED_201.getrCode());
-
-        TestTaskResponse addTaskResponse = addTask(token.toString(), "Kuba musi buy cos", "2021-06-30");
+        TestTaskResponse addTaskResponse = addTask(token, "Kuba musi buy cos", "2021-06-30");
 
         assertThat(addTaskResponse.code).isEqualTo(HttpCode.CREATED_201.getrCode());
 
-        TestTaskResponse getTaskResponse = getTask(token.toString(), addTaskResponse.taskEntity.getId().toString());
+        TestTaskResponse getTaskResponse = getTask(token, addTaskResponse.taskEntity.getId().toString());
         assertThat(getTaskResponse.code).isEqualTo(HttpCode.OK_200.getrCode());
         assertThat(getTaskResponse.taskEntity.getId()).isEqualTo(addTaskResponse.taskEntity.getId());
     }
@@ -139,29 +135,22 @@ class CombainedTest {
     void Should_AddTwoUsers_AddTask_RandomUser401() throws IOException, InterruptedException {
         String login = randomLogin();
         String password = randomLogin();
+        String token = creteToken(login, password);
 
-        StringBuilder token = new StringBuilder();
-        token.append(Base64.getEncoder().encodeToString(login.getBytes()));
-        token.append(":");
-        token.append(Base64.getEncoder().encodeToString(password.getBytes()));
+        String token2 = creteRandomToken();
 
-        StringBuilder token3 = new StringBuilder();
-        token3.append(Base64.getEncoder().encodeToString(randomLogin().getBytes()));
-        token3.append(":");
-        token3.append(Base64.getEncoder().encodeToString(randomLogin().getBytes()));
+        TestResponse addUserResponse = addUser(login, password);
+        assertThat(addUserResponse.code).isEqualTo(HttpCode.CREATED_201.getrCode());
 
-        TestResponse response = addUser(login, password);
-        assertThat(response.code).isEqualTo(HttpCode.CREATED_201.getrCode());
-
-        TestTaskResponse addTaskResponse = addTask(token.toString(), "Kuba musi buy cos", "2021-06-30");
+        TestTaskResponse addTaskResponse = addTask(token, "Kuba musi buy cos", "2021-06-30");
 
         assertThat(addTaskResponse.code).isEqualTo(HttpCode.CREATED_201.getrCode());
 
-        TestTaskResponse getTaskResponse = getTask(token.toString(), addTaskResponse.taskEntity.getId().toString());
+        TestTaskResponse getTaskResponse = getTask(token, addTaskResponse.taskEntity.getId().toString());
         assertThat(getTaskResponse.code).isEqualTo(HttpCode.OK_200.getrCode());
         assertThat(getTaskResponse.taskEntity.getId()).isEqualTo(addTaskResponse.taskEntity.getId());
 
-        TestTaskResponse get2TaskResponse = getTask(token3.toString(), addTaskResponse.taskEntity.getId().toString());
+        TestTaskResponse get2TaskResponse = getTask(token2, addTaskResponse.taskEntity.getId().toString());
         assertThat(get2TaskResponse.code).isEqualTo(HttpCode.UNAUTHORIZED_401.getrCode());
     }
 
@@ -170,21 +159,16 @@ class CombainedTest {
     void Should_AddUser_Tasks404() throws IOException, InterruptedException {
         String login = randomLogin();
         String password = randomLogin();
+        String token = creteToken(login, password);
 
-        StringBuilder token = new StringBuilder();
-        token.append(Base64.getEncoder().encodeToString(login.getBytes()));
-        token.append(":");
-        token.append(Base64.getEncoder().encodeToString(password.getBytes()));
+        TestResponse addUserResponse = addUser(login, password);
+        assertThat(addUserResponse.code).isEqualTo(HttpCode.CREATED_201.getrCode());
 
-
-        TestResponse response = addUser(login, password);
-        assertThat(response.code).isEqualTo(HttpCode.CREATED_201.getrCode());
-
-        TestTaskResponse addTaskResponse = addTask(token.toString(), "Kuba musi buy cos", "2021-06-30");
+        TestTaskResponse addTaskResponse = addTask(token, "Kuba musi buy cos", "2021-06-30");
 
         assertThat(addTaskResponse.code).isEqualTo(HttpCode.CREATED_201.getrCode());
 
-        TestTaskResponse getTaskResponse = getTask(token.toString(), UUID.randomUUID().toString());
+        TestTaskResponse getTaskResponse = getTask(token, UUID.randomUUID().toString());
         assertThat(getTaskResponse.code).isEqualTo(HttpCode.NOT_FOUND_404.getrCode());
 
     }
@@ -198,15 +182,8 @@ class CombainedTest {
         String login2 = randomLogin();
         String password2 = randomLogin();
 
-        StringBuilder token = new StringBuilder();
-        token.append(Base64.getEncoder().encodeToString(login.getBytes()));
-        token.append(":");
-        token.append(Base64.getEncoder().encodeToString(password.getBytes()));
-
-        StringBuilder token2 = new StringBuilder();
-        token2.append(Base64.getEncoder().encodeToString(login2.getBytes()));
-        token2.append(":");
-        token2.append(Base64.getEncoder().encodeToString(password2.getBytes()));
+        String token = creteToken(login, password);
+        String token2 = creteToken(login2, password2);
 
 
         TestResponse response = addUser(login, password);
@@ -215,15 +192,15 @@ class CombainedTest {
         TestResponse response2 = addUser(login2, password2);
         assertThat(response2.code).isEqualTo(HttpCode.CREATED_201.getrCode());
 
-        TestTaskResponse addTaskResponse = addTask(token.toString(), "Kuba musi buy cos", "2021-06-30");
+        TestTaskResponse addTaskResponse = addTask(token, "Kuba musi buy cos", "2021-06-30");
 
         assertThat(addTaskResponse.code).isEqualTo(HttpCode.CREATED_201.getrCode());
 
-        TestTaskResponse getTaskResponse = getTask(token.toString(), addTaskResponse.taskEntity.getId().toString());
+        TestTaskResponse getTaskResponse = getTask(token, addTaskResponse.taskEntity.getId().toString());
         assertThat(getTaskResponse.code).isEqualTo(HttpCode.OK_200.getrCode());
         assertThat(getTaskResponse.taskEntity.getId()).isEqualTo(addTaskResponse.taskEntity.getId());
 
-        TestTaskResponse get3TaskResponse = getTask(token2.toString(), addTaskResponse.taskEntity.getId().toString());
+        TestTaskResponse get3TaskResponse = getTask(token2, addTaskResponse.taskEntity.getId().toString());
         assertThat(get3TaskResponse.code).isEqualTo(HttpCode.FORBIDDEN_403.getrCode());
     }
 
@@ -232,39 +209,32 @@ class CombainedTest {
     void Multiple_Testing_Adding_Task() throws IOException, InterruptedException {
         String login = randomLogin();
         String password = randomLogin();
+        String token = creteToken(login, password);
 
-        StringBuilder token = new StringBuilder();
-        token.append(Base64.getEncoder().encodeToString(login.getBytes()));
-        token.append(":");
-        token.append(Base64.getEncoder().encodeToString(password.getBytes()));
+        String token2 = creteRandomToken();
 
-        StringBuilder token2 = new StringBuilder();
-        token2.append(Base64.getEncoder().encodeToString(randomLogin().getBytes()));
-        token2.append(":");
-        token2.append(Base64.getEncoder().encodeToString(randomLogin().getBytes()));
+        TestResponse addUserResponse = addUser(login, password);
 
-        TestResponse resposne = addUser(login, password);
-
-        assertThat(resposne.code).isEqualTo(HttpCode.CREATED_201.getrCode());
+        assertThat(addUserResponse.code).isEqualTo(HttpCode.CREATED_201.getrCode());
 
         TestTaskResponse addTaskResponse;
 
-        addTaskResponse = addTask(token.toString(), "Test1", "2021-06-30");
+        addTaskResponse = addTask(token, "Test1", "2021-06-30");
         assertThat(addTaskResponse.code).isEqualTo(HttpCode.CREATED_201.getrCode());
 
-        addTaskResponse = addTask(token.toString(), "Test2", "2021-30-06");
+        addTaskResponse = addTask(token, "Test2", "2021-30-06");
         assertThat(addTaskResponse.code).isEqualTo(HttpCode.BAD_REQUEST_400.getrCode());
 
-        addTaskResponse = addTask(token.toString(), "", "2021-30-06");
+        addTaskResponse = addTask(token, "", "2021-30-06");
         assertThat(addTaskResponse.code).isEqualTo(HttpCode.BAD_REQUEST_400.getrCode());
 
-        addTaskResponse = addTask(token.toString(), "", "");
+        addTaskResponse = addTask(token, "", "");
         assertThat(addTaskResponse.code).isEqualTo(HttpCode.BAD_REQUEST_400.getrCode());
 
-        addTaskResponse = addTask(token.toString(), "Test5", "");
+        addTaskResponse = addTask(token, "Test5", "");
         assertThat(addTaskResponse.code).isEqualTo(HttpCode.BAD_REQUEST_400.getrCode());
 
-        addTaskResponse = addTask(token2.toString(), "Test6", "2021-06-30");
+        addTaskResponse = addTask(token2, "Test6", "2021-06-30");
         assertThat(addTaskResponse.code).isEqualTo(HttpCode.UNAUTHORIZED_401.getrCode());
     }
 
@@ -274,27 +244,24 @@ class CombainedTest {
         String login = randomLogin();
         String password = randomLogin();
 
-        StringBuilder token = new StringBuilder();
-        token.append(Base64.getEncoder().encodeToString(login.getBytes()));
-        token.append(":");
-        token.append(Base64.getEncoder().encodeToString(password.getBytes()));
+        String token = creteToken(login, password);
 
         TestResponse resposne = addUser(login, password);
 
         assertThat(resposne.code).isEqualTo(HttpCode.CREATED_201.getrCode());
 
-        TestTaskResponse addTaskResponse = addTask(token.toString(), "Kuba musi buy cos", "2021-06-30");
+        TestTaskResponse addTaskResponse = addTask(token, "Kuba musi buy cos", "2021-06-30");
 
         assertThat(addTaskResponse.code).isEqualTo(HttpCode.CREATED_201.getrCode());
 
-        TestTaskResponse getTaskResponse = getTask(token.toString(), addTaskResponse.taskEntity.getId().toString());
+        TestTaskResponse getTaskResponse = getTask(token, addTaskResponse.taskEntity.getId().toString());
         assertThat(getTaskResponse.code).isEqualTo(HttpCode.OK_200.getrCode());
         assertThat(getTaskResponse.taskEntity.getId()).isEqualTo(addTaskResponse.taskEntity.getId());
 
-        TestResponse deleteTaskResponse = deleteTask(token.toString(), addTaskResponse.taskEntity.getId().toString());
+        TestResponse deleteTaskResponse = deleteTask(token, addTaskResponse.taskEntity.getId().toString());
         assertThat(getTaskResponse.code).isEqualTo(HttpCode.OK_200.getrCode());
 
-        TestTaskResponse notGetTaskResponse = getTask(token.toString(), addTaskResponse.taskEntity.getId().toString());
+        TestTaskResponse notGetTaskResponse = getTask(token, addTaskResponse.taskEntity.getId().toString());
         assertThat(notGetTaskResponse.code).isEqualTo(HttpCode.NOT_FOUND_404.getrCode());
 
     }
@@ -310,39 +277,34 @@ class CombainedTest {
         token.append(":");
         token.append(Base64.getEncoder().encodeToString(password.getBytes()));
 
-        TestResponse resposne = addUser(login, password);
+        TestResponse addUserResponse = addUser(login, password);
 
-        assertThat(resposne.code).isEqualTo(HttpCode.CREATED_201.getrCode());
+        assertThat(addUserResponse.code).isEqualTo(HttpCode.CREATED_201.getrCode());
 
         TestTaskResponse addTaskResponse = addTask(token.toString(), "Kuba musi buy cos", "2021-06-30");
 
         assertThat(addTaskResponse.code).isEqualTo(HttpCode.CREATED_201.getrCode());
 
-        TestTaskResponse getTaskResponse = getTask(token.toString(), "79cc630f-77ca-4980-8405-81ac749a9ea0");
+        TestTaskResponse getTaskResponse = getTask(token.toString(), UUID.randomUUID().toString());
         assertThat(getTaskResponse.code).isEqualTo(HttpCode.NOT_FOUND_404.getrCode());
     }
-
 
     @Test
     @Timeout(1)
     void Should_AddUser_AddTask_PutTask() throws IOException, InterruptedException {
         String login = randomLogin();
         String password = randomLogin();
+        String token = creteToken(login, password);
 
-        StringBuilder token = new StringBuilder();
-        token.append(Base64.getEncoder().encodeToString(login.getBytes()));
-        token.append(":");
-        token.append(Base64.getEncoder().encodeToString(password.getBytes()));
+        TestResponse addUserResponse = addUser(login, password);
 
-        TestResponse resposne = addUser(login, password);
+        assertThat(addUserResponse.code).isEqualTo(HttpCode.CREATED_201.getrCode());
 
-        assertThat(resposne.code).isEqualTo(HttpCode.CREATED_201.getrCode());
-
-        TestTaskResponse addTaskResponse = addTask(token.toString(), "Kuba musi buy cos", "2021-06-30");
+        TestTaskResponse addTaskResponse = addTask(token, "Kuba musi buy cos", "2021-06-30");
 
         assertThat(addTaskResponse.code).isEqualTo(HttpCode.CREATED_201.getrCode());
 
-        TestTaskResponse getTaskResponse = putTask(token.toString(), addTaskResponse.taskEntity.getId().toString(), "New Description", "2021-06-30");
+        TestTaskResponse getTaskResponse = putTask(token, addTaskResponse.taskEntity.getId().toString(), "New Description", "2021-06-30");
         assertThat(getTaskResponse.code).isEqualTo(HttpCode.OK_200.getrCode());
     }
 
@@ -355,46 +317,23 @@ class CombainedTest {
         String login2 = randomLogin();
         String password2 = randomLogin();
 
-        StringBuilder token = new StringBuilder();
-        token.append(Base64.getEncoder().encodeToString(login.getBytes()));
-        token.append(":");
-        token.append(Base64.getEncoder().encodeToString(password.getBytes()));
-
-        StringBuilder token2 = new StringBuilder();
-        token2.append(Base64.getEncoder().encodeToString(login2.getBytes()));
-        token2.append(":");
-        token2.append(Base64.getEncoder().encodeToString(password2.getBytes()));
+        String token = creteToken(login, password);
+        String token2 = creteToken(login2, password2);
 
 
-        TestResponse response = addUser(login, password);
-        assertThat(response.code).isEqualTo(HttpCode.CREATED_201.getrCode());
+        TestResponse addUserResponse = addUser(login, password);
+        assertThat(addUserResponse.code).isEqualTo(HttpCode.CREATED_201.getrCode());
 
 
-        TestResponse response2 = addUser(login2, password2);
-        assertThat(response2.code).isEqualTo(HttpCode.CREATED_201.getrCode());
+        TestResponse addUser2Response = addUser(login2, password2);
+        assertThat(addUser2Response.code).isEqualTo(HttpCode.CREATED_201.getrCode());
 
-        TestTaskResponse addTaskResponse = addTask(token.toString(), "Kuba musi buy cos", "2021-06-30");
+        TestTaskResponse addTaskResponse = addTask(token, "Kuba musi buy cos", "2021-06-30");
 
         assertThat(addTaskResponse.code).isEqualTo(HttpCode.CREATED_201.getrCode());
 
-        TestTaskResponse getTaskResponse = putTask(token2.toString(), addTaskResponse.taskEntity.getId().toString(), "New Description", "2021-06-30");
+        TestTaskResponse getTaskResponse = putTask(token2, addTaskResponse.taskEntity.getId().toString(), "New Description", "2021-06-30");
         assertThat(getTaskResponse.code).isEqualTo(HttpCode.FORBIDDEN_403.getrCode());
     }
 
-    static class TestResponse {
-        int code;
-
-        public TestResponse(int code) {
-            this.code = code;
-        }
-    }
-
-    static class TestTaskResponse extends TestResponse {
-        TaskEntity taskEntity;
-
-        public TestTaskResponse(int code, TaskEntity taskEntity) {
-            super(code);
-            this.taskEntity = taskEntity;
-        }
-    }
 }

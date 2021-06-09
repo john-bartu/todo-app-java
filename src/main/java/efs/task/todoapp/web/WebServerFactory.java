@@ -60,7 +60,20 @@ public class WebServerFactory {
     }
 
     static class EndpointDefault implements HttpHandler {
-        HashMap<HttpMethode, Method> methodHashMap = new HashMap<>();
+        final HashMap<HttpMethode, Method> methodHashMap = new HashMap<>() {
+            @Override
+            public String toString() {
+
+                StringBuilder stringBuilder = new StringBuilder();
+
+                this.forEach((methode, method) -> {
+                    String response = String.format("\t [%10s] -> %s\n", methode.toString(), method.getName());
+                    stringBuilder.append(response);
+                });
+
+                return stringBuilder.toString();
+            }
+        };
 
 
         void InitMethodEndpoints(Object o) {
@@ -75,8 +88,7 @@ public class WebServerFactory {
                 }
             }
 
-            LOGGER.info("- New Endpoint:" + o.getClass().getName() + "\n"
-                    + "\t" + methodHashMap.toString());
+            LOGGER.info("- New Endpoint: " + o.getClass().getName() + "\n" + methodHashMap);
         }
 
         @Override
@@ -88,9 +100,8 @@ public class WebServerFactory {
                     httpExchange.getRequestHeaders(),
                     new String(httpExchange.getRequestBody().readAllBytes())
             );
-            LOGGER.info("-> Handling client request:"
-                    + "\t        [" + request.getRequestMethod() + "]\n"
-                    + "\t    URI: " + request.getRequestURI() + "\n"
+            LOGGER.info("-> Handling client request:\n"
+                    + "\t    URI: " + request.getRequestURI() + "\t[" + request.getRequestMethod() + "]\n"
                     + "\tHEADERS: " + request.getRequestHeaders().keySet() + "\n"
                     + "\t   BODY: " + request.getRequestBody() + "\n"
             );
@@ -125,16 +136,16 @@ public class WebServerFactory {
                 }
             }
 
-            LOGGER.info("<- Server response:"
-                    + "\t        [" + httpResponse.httpCode.rCode + "]: "
-                    + "\t   BODY: " + httpResponse.httpResponse);
+            LOGGER.info("<- Server response:\n"
+                    + "\t   CODE: [" + httpResponse.httpCode.rCode + "] \n"
+                    + "\t   BODY: " + httpResponse.httpResponse + "\n");
             httpExchange.sendResponseHeaders(httpResponse.httpCode.rCode, httpResponse.getSize());
             httpExchange.getResponseHeaders().add("Content-type", "application/json");
             OutputStream os = httpExchange.getResponseBody();
             os.write(httpResponse.httpResponse.getBytes());
             os.close();
 
-            LOGGER.info("-------------------------------------------");
+            LOGGER.info("-------------------------------------------\n\n");
         }
 
         HttpResponse defaultHandle(Request t) {

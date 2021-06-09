@@ -31,7 +31,6 @@ public class TaskEntity {
         if (taskEntity.due != null) {
             SimpleDateFormat sdfrmt = new SimpleDateFormat("yyyy-MM-dd");
             sdfrmt.setLenient(false);
-            System.out.println(taskEntity.due + " is valid Date Format");
             try {
                 sdfrmt.parse(taskEntity.due);
             } catch (ParseException e) {

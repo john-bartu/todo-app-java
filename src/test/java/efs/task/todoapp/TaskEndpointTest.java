@@ -14,7 +14,6 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.util.Arrays;
-import java.util.Base64;
 import java.util.List;
 
 import static efs.task.todoapp.util.TestUtils.creteToken;
@@ -54,18 +53,12 @@ class TaskEndpointTest {
         //then
         assertThat(httpResponseUser.statusCode()).as("Response create user").isEqualTo(HttpCode.CREATED_201.getrCode());
 
-        StringBuilder token = new StringBuilder();
-        token.append(Base64.getEncoder().encodeToString(username.getBytes()));
-        token.append(":");
-        token.append(Base64.getEncoder().encodeToString(password.getBytes()));
-
-        System.out.println("HASH: " + token);
-
+        String token = creteToken(username, password);
 
         var createTaskRequest = HttpRequest.newBuilder()
                 .uri(URI.create(TODO_APP_PATH + "/task"))
                 .header("Content-Type", "application/json")
-                .header("Auth", token.toString())
+                .header("Auth", token)
                 .POST(HttpRequest.BodyPublishers.ofString("{\"description\": \"Kup mleko\",\"due\": \"2021-06-30\"}"))
                 .build();
 
@@ -99,10 +92,7 @@ class TaskEndpointTest {
         //then
         assertThat(httpResponseUser.statusCode()).as("Response create user").isEqualTo(HttpCode.CREATED_201.getrCode());
 
-        StringBuilder token = new StringBuilder();
-        token.append(Base64.getEncoder().encodeToString(username.getBytes()));
-        token.append(":");
-        token.append(Base64.getEncoder().encodeToString(password.getBytes()));
+        String token = creteToken(username, password);
 
         System.out.println("HASH: " + token);
 
@@ -110,7 +100,7 @@ class TaskEndpointTest {
         var createTaskRequest = HttpRequest.newBuilder()
                 .uri(URI.create(TODO_APP_PATH + "/task"))
                 .header("Content-Type", "application/json")
-                .header("Auth", token.toString())
+                .header("Auth", token)
                 .POST(HttpRequest.BodyPublishers.ofString("{\"description\": \"Kup mleko\",\"due\": \"2021-30-06\"}"))
                 .build();
 
@@ -130,20 +120,13 @@ class TaskEndpointTest {
 
         String username = "this";
         String password = "not_exist";
-
-
-        StringBuilder token = new StringBuilder();
-        token.append(Base64.getEncoder().encodeToString(username.getBytes()));
-        token.append(":");
-        token.append(Base64.getEncoder().encodeToString(password.getBytes()));
-
-        System.out.println("HASH: " + token);
+        String token = creteToken(username, password);
 
 
         var listTaskRequest = HttpRequest.newBuilder()
                 .uri(URI.create(TODO_APP_PATH + "/task"))
                 .header("Content-Type", "application/json")
-                .header("Auth", token.toString())
+                .header("Auth", token)
                 .GET()
                 .build();
 
@@ -178,12 +161,7 @@ class TaskEndpointTest {
 
         String username = "user";
         String password = "password";
-
-
-        StringBuilder token = new StringBuilder();
-        token.append(Base64.getEncoder().encodeToString(username.getBytes()));
-        token.append(":");
-        token.append(Base64.getEncoder().encodeToString(password.getBytes()));
+        String token = creteToken(username, password);
 
         System.out.println("HASH: " + token);
 
@@ -191,7 +169,7 @@ class TaskEndpointTest {
         var listTaskRequest = HttpRequest.newBuilder()
                 .uri(URI.create(TODO_APP_PATH + "/task"))
                 .header("Content-Type", "application/json")
-                .header("Auth", token.toString())
+                .header("Auth", token)
                 .GET()
                 .build();
 
@@ -208,7 +186,6 @@ class TaskEndpointTest {
 
         String username = "user";
         String password = "password";
-
         String token = creteToken(username, password);
 
         System.out.println("HASH: " + token);
@@ -250,11 +227,7 @@ class TaskEndpointTest {
 
         String username = "user";
         String password = "password";
-
         String token = creteToken(username, password);
-
-        System.out.println("HASH: " + token);
-
 
         var listTaskRequest = HttpRequest.newBuilder()
                 .uri(URI.create(TODO_APP_PATH + "/task"))

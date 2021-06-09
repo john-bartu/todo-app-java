@@ -274,7 +274,6 @@ public class WebServerFactory {
             String username = database.authenticate(token);
             LOGGER.info("USER: " + username);
 
-
             updateTask.setId(uuid);
 
             String taskStr = new Gson().toJson(database.updateUserTask(username, updateTask));

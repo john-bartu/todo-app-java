@@ -20,7 +20,7 @@ public class TaskEntity {
     public static void Validate(TaskEntity taskEntity) throws BadRequest {
 
         if (taskEntity == null) {
-            throw new BadRequest("Validation: Task in sull");
+            throw new BadRequest("Validation: Task is null");
         }
 
 

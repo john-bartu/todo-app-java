@@ -42,16 +42,14 @@ public class ToDoService {
 
     public String authenticate(String token) throws BadRequest, Unauthorized {
 
-        LOGGER.info("Authenticating:\n TOKEN:" + token);
-
         UserEntity.checkToken(token);
         List<UserEntity> foundUsers = userRepository.query(ue -> ue.encode().equals(token));
 
         if (foundUsers.size() > 0) {
-            LOGGER.info("Authenticated TOKEN:" + token);
+            LOGGER.info("Authenticating FAILED TOKEN:" + token);
             return foundUsers.get(0).getUsername();
         } else {
-            LOGGER.info("Unauthenticated TOKEN:" + token);
+            LOGGER.info("Authenticating FAILED token:" + token);
             throw new Unauthorized(token);
         }
 
@@ -116,10 +114,10 @@ public class ToDoService {
     }
 
     public TaskEntity updateUserTask(String username, TaskEntity updateTask) throws NotFound, Forbidden {
-        LOGGER.info("Updating task\n FROM: {" + taskRepository.query(updateTask.getId()).toString() + "\n} TO: {" + updateTask + "}");
-
         if (!isTaskExists(updateTask.getId()))
             throw new NotFound("Task with given uuid does not exists");
+
+        LOGGER.info("Updating task\n FROM: {" + taskRepository.query(updateTask.getId()).toString() + "\n} TO: {" + updateTask + "}");
 
         if (!isTaskBelongsToUser(username, updateTask.getId()))
             throw new Forbidden("Task belongs to other user");

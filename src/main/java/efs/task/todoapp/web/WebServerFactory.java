@@ -31,17 +31,12 @@ public class WebServerFactory {
 
         Class<?>[] endpointClasses = WebServerFactory.class.getDeclaredClasses();
 
-
-        LOGGER.info("[REGISTERED ENDPOINTS:]");
+        LOGGER.info("Registering endpoints...");
 
         for (Class<?> endpointClass : endpointClasses) {
             URIEndPoint annotation = endpointClass.getAnnotation(URIEndPoint.class);
             if (annotation != null) {
                 String url = annotation.path();
-
-
-//                System.out.println("\t" + url);
-
 
                 Constructor<?> constructor;
                 try {
@@ -54,12 +49,11 @@ public class WebServerFactory {
                     e.printStackTrace();
                 }
 
-
                 urls.add(url);
-
-
             }
         }
+
+        LOGGER.info("... registering endpoints done.");
 
         server.setExecutor(null); // creates a default executor
         return server;
@@ -67,6 +61,7 @@ public class WebServerFactory {
 
     static class EndpointDefault implements HttpHandler {
         HashMap<HttpMethode, Method> methodHashMap = new HashMap<>();
+
 
         void InitMethodEndpoints(Object o) {
 
@@ -77,9 +72,11 @@ public class WebServerFactory {
                 if (annotation != null) {
                     HttpMethode method = annotation.method();
                     methodHashMap.put(method, endpointMethode);
-//                    System.out.println("\t\t" + method);
                 }
             }
+
+            LOGGER.info("- New Endpoint:" + o.getClass().getName() + "\n"
+                    + "\t" + methodHashMap.toString());
         }
 
         @Override
@@ -91,10 +88,11 @@ public class WebServerFactory {
                     httpExchange.getRequestHeaders(),
                     new String(httpExchange.getRequestBody().readAllBytes())
             );
-            LOGGER.info("[" + request.getRequestMethod() + "]\n"
-                    + "URI: " + request.getRequestURI() + "\n"
-                    + "HEADERS: " + request.getRequestHeaders().keySet() + "\n"
-                    + "BODY: " + request.getRequestBody() + "\n"
+            LOGGER.info("-> Handling client request:"
+                    + "\t        [" + request.getRequestMethod() + "]\n"
+                    + "\t    URI: " + request.getRequestURI() + "\n"
+                    + "\tHEADERS: " + request.getRequestHeaders().keySet() + "\n"
+                    + "\t   BODY: " + request.getRequestBody() + "\n"
             );
 
             HttpMethode requestMethode = HttpMethode.valueOf(request.getRequestMethod());
@@ -127,14 +125,16 @@ public class WebServerFactory {
                 }
             }
 
-
-            LOGGER.info("SERVER:\n[" + httpResponse.httpCode.rCode + "]: " + httpResponse.httpResponse);
+            LOGGER.info("<- Server response:"
+                    + "\t        [" + httpResponse.httpCode.rCode + "]: "
+                    + "\t   BODY: " + httpResponse.httpResponse);
             httpExchange.sendResponseHeaders(httpResponse.httpCode.rCode, httpResponse.getSize());
             httpExchange.getResponseHeaders().add("Content-type", "application/json");
             OutputStream os = httpExchange.getResponseBody();
             os.write(httpResponse.httpResponse.getBytes());
             os.close();
 
+            LOGGER.info("-------------------------------------------");
         }
 
         HttpResponse defaultHandle(Request t) {

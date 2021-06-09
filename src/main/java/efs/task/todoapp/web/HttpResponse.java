@@ -11,7 +11,7 @@ class HttpResponse {
 
     public HttpResponse() {
         httpResponse = "Error 404 - Default Response";
-        httpCode = HttpCode.NotFound_404;
+        httpCode = HttpCode.NOT_FOUND_404;
     }
 
     public HttpResponse toJson(HttpCode code, String data) {

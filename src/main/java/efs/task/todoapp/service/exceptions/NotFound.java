@@ -1,4 +1,4 @@
-package efs.task.todoapp.service;
+package efs.task.todoapp.service.exceptions;
 
 public class NotFound extends Exception {
     public NotFound(String errorMessage) {

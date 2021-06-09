@@ -4,6 +4,7 @@ import efs.task.todoapp.repository.TaskEntity;
 import efs.task.todoapp.repository.TaskRepository;
 import efs.task.todoapp.repository.UserEntity;
 import efs.task.todoapp.repository.UserRepository;
+import efs.task.todoapp.service.exceptions.*;
 
 import java.util.*;
 import java.util.logging.Logger;
@@ -28,36 +29,22 @@ public class ToDoService {
         this.taskUserMap = new HashMap<>();
     }
 
-    public boolean AddUser(UserEntity userEntity) throws Conflict {
+    public void AddUser(UserEntity userEntity) throws Conflict, BadRequest {
         if (userRepository.query(userEntity.getUsername()) == null) {
             String addedUser = userRepository.save(userEntity);
-            return (addedUser.equals(userEntity.getUsername()));
+            if (!addedUser.equals(userEntity.getUsername()))
+                throw new BadRequest("Saving user failed");
         } else {
             throw new Conflict("User with given login exists");
         }
     }
 
-    void CheckToken(String token) throws BadRequest {
 
-
-        List<String> test = Arrays.asList(token.split("[\\s:]+"));
-
-        try {
-            Base64.getDecoder().decode(test.get(0));
-            Base64.getDecoder().decode(test.get(1));
-
-        } catch (IllegalArgumentException e) {
-            throw new BadRequest("Token is not a token");
-        }
-
-    }
-
-
-    public String Authenticate(String token) throws BadRequest, Unauthorized {
+    public String authenticate(String token) throws BadRequest, Unauthorized {
 
         LOGGER.info("Authenticating:\n TOKEN:" + token);
 
-        CheckToken(token);
+        UserEntity.checkToken(token);
         List<UserEntity> foundUsers = userRepository.query(ue -> ue.encode().equals(token));
 
         if (foundUsers.size() > 0) {
@@ -71,9 +58,9 @@ public class ToDoService {
 
     }
 
-    public void AddTask(String username, TaskEntity newTask) throws BadRequest {
+    public void addUserTask(String username, TaskEntity newTask) throws BadRequest {
         newTask.assignUUID();
-        LOGGER.info("Trying add task:\n for: " + username + "task: " + newTask.toString());
+        LOGGER.info("Trying add task:\n for: " + username + "task: " + newTask);
 
         if (taskRepository.save(newTask) == null)
             throw new BadRequest("Adding task failed");
@@ -82,7 +69,7 @@ public class ToDoService {
 
     }
 
-    public List<TaskEntity> GetTasks(String username) {
+    public List<TaskEntity> getUserTasks(String username) {
         List<TaskEntity> userTasks = new ArrayList<>();
 
         taskUserMap.forEach((uuid, s) -> {
@@ -95,30 +82,30 @@ public class ToDoService {
 
     }
 
-    public boolean TaskExists(UUID uuid) {
+    public boolean isTaskExists(UUID uuid) {
         boolean check = taskRepository.query(uuid) != null;
         LOGGER.info("Checking if task: { " + uuid + " } exists ?" + check);
         return taskRepository.query(uuid) != null;
     }
 
-    public boolean TaskBelongsToUser(String username, UUID uuid) {
+    public boolean isTaskBelongsToUser(String username, UUID uuid) {
         boolean check = taskUserMap.get(uuid).equals(username);
         LOGGER.info("Checking if task: { " + uuid + " } belongs to user: {" + username + "} ?" + check);
         return check;
     }
 
-    public TaskEntity GetTask(UUID uuid) {
+    public TaskEntity getTask(UUID uuid) {
         TaskEntity task = taskRepository.query(uuid);
         LOGGER.info("Getting task: " + task.toString());
         return task;
     }
 
-    public void removeTask(String username, UUID uuid) throws NotFound, Forbidden {
+    public void removeUserTask(String username, UUID uuid) throws NotFound, Forbidden {
 
-        if (!TaskExists(uuid))
+        if (!isTaskExists(uuid))
             throw new NotFound("Task with given uuid does not exists");
 
-        if (!TaskBelongsToUser(username, uuid)) {
+        if (!isTaskBelongsToUser(username, uuid)) {
             throw new Forbidden("Task belongs to other user");
         }
 
@@ -128,13 +115,13 @@ public class ToDoService {
 
     }
 
-    public TaskEntity UpdateTask(String username, TaskEntity updateTask) throws NotFound, Forbidden {
+    public TaskEntity updateUserTask(String username, TaskEntity updateTask) throws NotFound, Forbidden {
         LOGGER.info("Updating task\n FROM: {" + taskRepository.query(updateTask.getId()).toString() + "\n} TO: {" + updateTask + "}");
 
-        if (!TaskExists(updateTask.getId()))
+        if (!isTaskExists(updateTask.getId()))
             throw new NotFound("Task with given uuid does not exists");
 
-        if (!TaskBelongsToUser(username, updateTask.getId()))
+        if (!isTaskBelongsToUser(username, updateTask.getId()))
             throw new Forbidden("Task belongs to other user");
 
 

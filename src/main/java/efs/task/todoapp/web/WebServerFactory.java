@@ -7,7 +7,8 @@ import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import efs.task.todoapp.repository.TaskEntity;
 import efs.task.todoapp.repository.UserEntity;
-import efs.task.todoapp.service.*;
+import efs.task.todoapp.service.ToDoService;
+import efs.task.todoapp.service.exceptions.*;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -98,15 +99,10 @@ public class WebServerFactory {
 
             HttpMethode requestMethode = HttpMethode.valueOf(request.getRequestMethod());
             HttpResponse httpResponse = defaultHandle(request);
-
             try {
                 if (methodHashMap.containsKey(requestMethode)) {
                     LOGGER.info("Method found " + methodHashMap.get(requestMethode).getName());
-
-
                     httpResponse = (HttpResponse) methodHashMap.get(requestMethode).invoke(null, request);
-
-
                 }
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
@@ -114,19 +110,20 @@ public class WebServerFactory {
                 try {
                     throw e.getCause();
                 } catch (JsonSyntaxException jsonSyntaxException) {
-                    httpResponse = new HttpResponse().toJson(HttpCode.BadRequest_400, "JSON Parse error" + e.getMessage());
+                    httpResponse = new HttpResponse().toJson(HttpCode.BAD_REQUEST_400, "JSON Parse error" + e.getMessage());
                 } catch (BadRequest badRequest) {
-                    httpResponse = new HttpResponse().toJson(HttpCode.BadRequest_400, badRequest.getMessage());
+                    httpResponse = new HttpResponse().toJson(HttpCode.BAD_REQUEST_400, badRequest.getMessage());
                 } catch (Unauthorized unauthorized) {
-                    httpResponse = new HttpResponse().toJson(HttpCode.Unauthorized_401, unauthorized.getMessage());
+                    httpResponse = new HttpResponse().toJson(HttpCode.UNAUTHORIZED_401, unauthorized.getMessage());
                 } catch (Conflict conflict) {
-                    httpResponse = new HttpResponse().toJson(HttpCode.Conflict_409, conflict.getMessage());
+                    httpResponse = new HttpResponse().toJson(HttpCode.CONFLICT_409, conflict.getMessage());
                 } catch (NotFound notFound) {
-                    httpResponse = new HttpResponse().toJson(HttpCode.NotFound_404, notFound.getMessage());
+                    httpResponse = new HttpResponse().toJson(HttpCode.NOT_FOUND_404, notFound.getMessage());
                 } catch (Forbidden forbidden) {
-                    httpResponse = new HttpResponse().toJson(HttpCode.Forbidden_403, forbidden.getMessage());
+                    httpResponse = new HttpResponse().toJson(HttpCode.FORBIDDEN_403, forbidden.getMessage());
                 } catch (Throwable throwable) {
                     throwable.printStackTrace();
+                    httpResponse = new HttpResponse().toJson(HttpCode.INTERNAL_SERVER_ERROR_500, throwable.getMessage());
                 }
             }
 
@@ -141,7 +138,7 @@ public class WebServerFactory {
         }
 
         HttpResponse defaultHandle(Request t) {
-            return new HttpResponse().toJson(HttpCode.NotFound_404, "For URI: " + t.getRequestURI());
+            return new HttpResponse().toJson(HttpCode.NOT_FOUND_404, "For URI: " + t.getRequestURI());
         }
 
 
@@ -161,7 +158,7 @@ public class WebServerFactory {
             LOGGER.info("Received user: " + new Gson().toJson(newUser));
             UserEntity.Validate(newUser);
             database.AddUser(newUser);
-            return new HttpResponse().toJson(HttpCode.Created_201, "User added");
+            return new HttpResponse().toJson(HttpCode.CREATED_201, "User added");
 
         }
 
@@ -180,11 +177,11 @@ public class WebServerFactory {
 
             String token = t.getHeaderAuth();
 
-            String username = database.Authenticate(token);
+            String username = database.authenticate(token);
 
             LOGGER.info("USER: " + username);
 
-            List<TaskEntity> taskEntities = database.GetTasks(username);
+            List<TaskEntity> taskEntities = database.getUserTasks(username);
 
             return new HttpResponse(HttpCode.OK_200, new Gson().toJson(taskEntities));
 
@@ -201,22 +198,22 @@ public class WebServerFactory {
 
             TaskEntity.Validate(newTask);
 
-            String username = database.Authenticate(token);
+            String username = database.authenticate(token);
 
-            database.AddTask(username, newTask);
-            return new HttpResponse(HttpCode.Created_201, "{\"id\":\"" + newTask.getId() + "\"}");
+            database.addUserTask(username, newTask);
+            return new HttpResponse(HttpCode.CREATED_201, "{\"id\":\"" + newTask.getId() + "\"}");
 
 
         }
 
         @MethodEndPoint(method = HttpMethode.PUT)
         static HttpResponse taskHandlePut(Request t) throws JsonSyntaxException {
-            return new HttpResponse().toJson(HttpCode.BadRequest_400, "");
+            return new HttpResponse().toJson(HttpCode.BAD_REQUEST_400, "");
         }
 
         @MethodEndPoint(method = HttpMethode.DELETE)
         static HttpResponse taskHandleDelete(Request t) throws JsonSyntaxException {
-            return new HttpResponse().toJson(HttpCode.BadRequest_400, "");
+            return new HttpResponse().toJson(HttpCode.BAD_REQUEST_400, "");
         }
     }
 
@@ -226,7 +223,6 @@ public class WebServerFactory {
 
         static Pattern pattern = Pattern.compile("^/todo/task/([A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{12})$");
 
-        @SuppressWarnings("unused")
         TodoTaskEndpoint() {
             InitMethodEndpoints(this);
         }
@@ -248,15 +244,15 @@ public class WebServerFactory {
 
             UUID uuid = GetUuidFromUrl(t.RequestURI);
 
-            String username = database.Authenticate(token);
-            if (!database.TaskExists(uuid))
-                return new HttpResponse().toJson(HttpCode.NotFound_404, "Task with given uuid does not exists");
+            String username = database.authenticate(token);
+            if (!database.isTaskExists(uuid))
+                return new HttpResponse().toJson(HttpCode.NOT_FOUND_404, "Task with given uuid does not exists");
 
-            if (!database.TaskBelongsToUser(username, uuid)) {
-                return new HttpResponse().toJson(HttpCode.Forbidden_403, "Task belongs to other user");
+            if (!database.isTaskBelongsToUser(username, uuid)) {
+                return new HttpResponse().toJson(HttpCode.FORBIDDEN_403, "Task belongs to other user");
             }
 
-            String taskStr = new Gson().toJson(database.GetTask(uuid));
+            String taskStr = new Gson().toJson(database.getTask(uuid));
 
             return new HttpResponse(HttpCode.OK_200, taskStr);
 
@@ -275,13 +271,13 @@ public class WebServerFactory {
 
             TaskEntity.Validate(updateTask);
 
-            String username = database.Authenticate(token);
+            String username = database.authenticate(token);
             LOGGER.info("USER: " + username);
 
 
             updateTask.setId(uuid);
 
-            String taskStr = new Gson().toJson(database.UpdateTask(username, updateTask));
+            String taskStr = new Gson().toJson(database.updateUserTask(username, updateTask));
 
             return new HttpResponse(HttpCode.OK_200, taskStr);
 
@@ -294,9 +290,9 @@ public class WebServerFactory {
 
             UUID uuid = GetUuidFromUrl(t.RequestURI);
 
-            String username = database.Authenticate(token);
+            String username = database.authenticate(token);
 
-            database.removeTask(username, uuid);
+            database.removeUserTask(username, uuid);
 
             return new HttpResponse().toJson(HttpCode.OK_200, "Task deleted");
 

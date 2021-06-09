@@ -1,6 +1,6 @@
 package efs.task.todoapp.web;
 
-import efs.task.todoapp.service.BadRequest;
+import efs.task.todoapp.service.exceptions.BadRequest;
 
 import java.util.ArrayList;
 import java.util.List;

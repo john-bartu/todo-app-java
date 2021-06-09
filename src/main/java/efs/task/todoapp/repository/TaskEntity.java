@@ -1,6 +1,6 @@
 package efs.task.todoapp.repository;
 
-import efs.task.todoapp.service.BadRequest;
+import efs.task.todoapp.service.exceptions.BadRequest;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;

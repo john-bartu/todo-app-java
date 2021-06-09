@@ -32,7 +32,7 @@ public interface Repository<ID, ENTITY> {
     /**
      * Updates entity with specified identifier.
      *
-     * @param id identifier whose associated entity is to be updated
+     * @param id     identifier whose associated entity is to be updated
      * @param entity entity with new data
      * @return updated entity with specified identifier or <code>null</code> if the repository does not contain such entity
      */

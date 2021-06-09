@@ -4,10 +4,6 @@ import com.sun.net.httpserver.HttpServer;
 import efs.task.todoapp.web.WebServerFactory;
 
 import java.io.IOException;
-import java.lang.reflect.AnnotatedType;
-import java.lang.reflect.Method;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.logging.Logger;
 
 public class ToDoApplication {

@@ -1,8 +1,10 @@
 package efs.task.todoapp.repository;
 
-import efs.task.todoapp.service.BadRequest;
+import efs.task.todoapp.service.exceptions.BadRequest;
 
+import java.util.Arrays;
 import java.util.Base64;
+import java.util.List;
 
 public class UserEntity {
     String username;
@@ -25,6 +27,20 @@ public class UserEntity {
 
         if (userEntity.getPassword() == null || userEntity.getPassword().equals("")) {
             throw new BadRequest("Validation: Password not provided");
+        }
+
+    }
+
+    public static void checkToken(String token) throws BadRequest {
+
+        List<String> test = Arrays.asList(token.split("[\\s:]+"));
+
+        try {
+            Base64.getDecoder().decode(test.get(0));
+            Base64.getDecoder().decode(test.get(1));
+
+        } catch (IllegalArgumentException e) {
+            throw new BadRequest("Token is not a token");
         }
 
     }

@@ -40,7 +40,7 @@ class ExampleEndpointTest {
         var httpResponse = httpClient.send(httpRequest, ofString());
 
         //then
-        assertThat(httpResponse.statusCode()).as("Response status code").isEqualTo(HttpCode.NotFound_404.getrCode());
+        assertThat(httpResponse.statusCode()).as("Response status code").isEqualTo(HttpCode.NOT_FOUND_404.getrCode());
     }
 
 //    @ParameterizedTest(name = "{index}: path={0}, methode={1}")

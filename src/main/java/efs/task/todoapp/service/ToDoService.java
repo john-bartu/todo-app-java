@@ -28,12 +28,12 @@ public class ToDoService {
         this.taskUserMap = new HashMap<>();
     }
 
-    public boolean AddUser(UserEntity userEntity) {
+    public boolean AddUser(UserEntity userEntity) throws Conflict {
         if (userRepository.query(userEntity.getUsername()) == null) {
             String addedUser = userRepository.save(userEntity);
             return (addedUser.equals(userEntity.getUsername()));
         } else {
-            return false;
+            throw new Conflict("User with given login exists");
         }
     }
 
@@ -71,16 +71,14 @@ public class ToDoService {
 
     }
 
-    public boolean AddTask(String username, TaskEntity newTask) {
+    public void AddTask(String username, TaskEntity newTask) throws BadRequest {
         newTask.assignUUID();
         LOGGER.info("Trying add task:\n for: " + username + "task: " + newTask.toString());
 
         if (taskRepository.save(newTask) == null)
-            return false;
+            throw new BadRequest("Adding task failed");
 
         taskUserMap.put(newTask.getId(), username);
-
-        return true;
 
     }
 
@@ -115,15 +113,31 @@ public class ToDoService {
         return task;
     }
 
-    public void removeTask(UUID uuid) {
+    public void removeTask(String username, UUID uuid) throws NotFound, Forbidden {
+
+        if (!TaskExists(uuid))
+            throw new NotFound("Task with given uuid does not exists");
+
+        if (!TaskBelongsToUser(username, uuid)) {
+            throw new Forbidden("Task belongs to other user");
+        }
+
         taskRepository.delete(uuid);
         LOGGER.info("Removing task {" + uuid + "}");
         taskUserMap.remove(uuid);
 
     }
 
-    public TaskEntity UpdateTask(TaskEntity updateTask) {
+    public TaskEntity UpdateTask(String username, TaskEntity updateTask) throws NotFound, Forbidden {
         LOGGER.info("Updating task\n FROM: {" + taskRepository.query(updateTask.getId()).toString() + "\n} TO: {" + updateTask + "}");
+
+        if (!TaskExists(updateTask.getId()))
+            throw new NotFound("Task with given uuid does not exists");
+
+        if (!TaskBelongsToUser(username, updateTask.getId()))
+            throw new Forbidden("Task belongs to other user");
+
+
         taskRepository.query(updateTask.getId()).setDescription(updateTask.getDescription());
         taskRepository.query(updateTask.getId()).setDue(updateTask.getDue());
         return taskRepository.query(updateTask.getId());

@@ -17,7 +17,7 @@ public class TaskEntity {
         this.due = due;
     }
 
-    public static boolean Validate(TaskEntity taskEntity) throws BadRequest {
+    public static void Validate(TaskEntity taskEntity) throws BadRequest {
 
         if (taskEntity == null) {
             throw new BadRequest("Validation: Task in sull");
@@ -40,7 +40,6 @@ public class TaskEntity {
 
         }
 
-        return true;
 
     }
 

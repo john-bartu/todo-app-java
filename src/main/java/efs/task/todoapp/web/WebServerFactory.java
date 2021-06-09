@@ -7,9 +7,7 @@ import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import efs.task.todoapp.repository.TaskEntity;
 import efs.task.todoapp.repository.UserEntity;
-import efs.task.todoapp.service.BadRequest;
-import efs.task.todoapp.service.ToDoService;
-import efs.task.todoapp.service.Unauthorized;
+import efs.task.todoapp.service.*;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -121,6 +119,12 @@ public class WebServerFactory {
                     httpResponse = new HttpResponse().toJson(HttpCode.BadRequest_400, badRequest.getMessage());
                 } catch (Unauthorized unauthorized) {
                     httpResponse = new HttpResponse().toJson(HttpCode.Unauthorized_401, unauthorized.getMessage());
+                } catch (Conflict conflict) {
+                    httpResponse = new HttpResponse().toJson(HttpCode.Conflict_409, conflict.getMessage());
+                } catch (NotFound notFound) {
+                    httpResponse = new HttpResponse().toJson(HttpCode.NotFound_404, notFound.getMessage());
+                } catch (Forbidden forbidden) {
+                    httpResponse = new HttpResponse().toJson(HttpCode.Forbidden_403, forbidden.getMessage());
                 } catch (Throwable throwable) {
                     throwable.printStackTrace();
                 }
@@ -143,6 +147,7 @@ public class WebServerFactory {
 
     }
 
+    @SuppressWarnings("unused")
     @URIEndPoint(path = "/todo/user")
     static class TodoUserEndpoint extends EndpointDefault {
         TodoUserEndpoint() {
@@ -150,23 +155,14 @@ public class WebServerFactory {
         }
 
         @MethodEndPoint(method = HttpMethode.POST)
-        static HttpResponse userHandlePost(Request t) throws BadRequest {
-
+        static HttpResponse userHandlePost(Request t) throws BadRequest, Conflict {
 
             UserEntity newUser = new Gson().fromJson(t.getRequestBody(), UserEntity.class);
             LOGGER.info("Received user: " + new Gson().toJson(newUser));
+            UserEntity.Validate(newUser);
+            database.AddUser(newUser);
+            return new HttpResponse().toJson(HttpCode.Created_201, "User added");
 
-            if (UserEntity.Validate(newUser)) {
-
-                if (database.AddUser(newUser)) {
-                    return new HttpResponse().toJson(HttpCode.Created_201, "User added");
-                } else {
-                    return new HttpResponse().toJson(HttpCode.Conflict_409, "User with given login exists");
-                }
-
-            } else {
-                return new HttpResponse().toJson(HttpCode.BadRequest_400, "No required fields for user");
-            }
         }
 
     }
@@ -203,14 +199,14 @@ public class WebServerFactory {
             LOGGER.info("Received task: " + new Gson().toJson(newTask));
             String token = t.getHeaderAuth();
 
-            if (TaskEntity.Validate(newTask)) {
-                String username = database.Authenticate(token);
-                if (database.AddTask(username, newTask)) {
-                    return new HttpResponse(HttpCode.Created_201, "{\"id\":\"" + newTask.getId() + "\"}");
-                }
-            }
+            TaskEntity.Validate(newTask);
 
-            return new HttpResponse().toJson(HttpCode.BadRequest_400, "No required fields for task provided");
+            String username = database.Authenticate(token);
+
+            database.AddTask(username, newTask);
+            return new HttpResponse(HttpCode.Created_201, "{\"id\":\"" + newTask.getId() + "\"}");
+
+
         }
 
         @MethodEndPoint(method = HttpMethode.PUT)
@@ -267,7 +263,7 @@ public class WebServerFactory {
         }
 
         @MethodEndPoint(method = HttpMethode.PUT)
-        static HttpResponse taskHandlePut(Request t) throws BadRequest, Unauthorized, JsonSyntaxException {
+        static HttpResponse taskHandlePut(Request t) throws BadRequest, Unauthorized, JsonSyntaxException, Forbidden, NotFound {
 
             String token = t.getHeaderAuth();
 
@@ -277,32 +273,22 @@ public class WebServerFactory {
 
             LOGGER.info("Received task to update: " + new Gson().toJson(updateTask));
 
-            if (TaskEntity.Validate(updateTask)) {
+            TaskEntity.Validate(updateTask);
 
-                String username = database.Authenticate(token);
-                LOGGER.info("USER: " + username);
+            String username = database.Authenticate(token);
+            LOGGER.info("USER: " + username);
 
-                if (!database.TaskExists(uuid))
-                    return new HttpResponse().toJson(HttpCode.NotFound_404, "Task with given uuid does not exists");
 
-                if (!database.TaskBelongsToUser(username, uuid))
-                    return new HttpResponse().toJson(HttpCode.Forbidden_403, "Task belongs to other user");
+            updateTask.setId(uuid);
 
-                updateTask.setId(uuid);
+            String taskStr = new Gson().toJson(database.UpdateTask(username, updateTask));
 
-                String taskStr = new Gson().toJson(database.UpdateTask(updateTask));
-
-                return new HttpResponse(HttpCode.OK_200, taskStr);
-
-            }
-
-            throw new BadRequest("Validate task body failed");
-
+            return new HttpResponse(HttpCode.OK_200, taskStr);
 
         }
 
         @MethodEndPoint(method = HttpMethode.DELETE)
-        static HttpResponse taskHandleDelete(Request t) throws BadRequest, Unauthorized, JsonSyntaxException {
+        static HttpResponse taskHandleDelete(Request t) throws BadRequest, Unauthorized, JsonSyntaxException, Forbidden, NotFound {
 
             String token = t.getHeaderAuth();
 
@@ -310,15 +296,7 @@ public class WebServerFactory {
 
             String username = database.Authenticate(token);
 
-            if (!database.TaskExists(uuid))
-                return new HttpResponse().toJson(HttpCode.NotFound_404, "Task with given uuid does not exists");
-
-            if (!database.TaskBelongsToUser(username, uuid)) {
-                return new HttpResponse().toJson(HttpCode.Forbidden_403, "Task belongs to other user");
-            }
-
-
-            database.removeTask(uuid);
+            database.removeTask(username, uuid);
 
             return new HttpResponse().toJson(HttpCode.OK_200, "Task deleted");
 

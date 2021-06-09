@@ -13,7 +13,7 @@ public class UserEntity {
         this.password = password;
     }
 
-    public static boolean Validate(UserEntity userEntity) throws BadRequest {
+    public static void Validate(UserEntity userEntity) throws BadRequest {
 
         if (userEntity == null) {
             throw new BadRequest("Validation: UserEntity is null");
@@ -26,8 +26,6 @@ public class UserEntity {
         if (userEntity.getPassword() == null || userEntity.getPassword().equals("")) {
             throw new BadRequest("Validation: Password not provided");
         }
-
-        return true;
 
     }
 

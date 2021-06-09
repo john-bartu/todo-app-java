@@ -17,12 +17,6 @@ public class ToDoService {
 
     private final Map<UUID, String> taskUserMap;
 
-    public ToDoService(UserRepository userRepository, TaskRepository taskRepository) {
-        this.userRepository = userRepository;
-        this.taskRepository = taskRepository;
-        this.taskUserMap = new HashMap<>();
-    }
-
     public ToDoService() {
         this.userRepository = new UserRepository();
         this.taskRepository = new TaskRepository();
@@ -122,9 +116,8 @@ public class ToDoService {
         if (!isTaskBelongsToUser(username, updateTask.getId()))
             throw new Forbidden("Task belongs to other user");
 
+        taskRepository.update(updateTask.getId(),updateTask);
 
-        taskRepository.query(updateTask.getId()).setDescription(updateTask.getDescription());
-        taskRepository.query(updateTask.getId()).setDue(updateTask.getDue());
         return taskRepository.query(updateTask.getId());
     }
 }

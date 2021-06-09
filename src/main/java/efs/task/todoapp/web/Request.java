@@ -24,7 +24,7 @@ class Request {
     }
 
 
-    private boolean ValidateToken(String token) throws BadRequest {
+    private void ValidateToken(String token) throws BadRequest {
         if (token == null || token.equals(""))
             throw new BadRequest("Auth token is null or empty");
 
@@ -39,7 +39,6 @@ class Request {
         if (un2 == null || un2.equals(""))
             throw new BadRequest("Auth token password is empty or null");
 
-        return true;
     }
 
 
@@ -47,11 +46,9 @@ class Request {
         if (RequestHeaders.containsKey("Auth")) {
             String token = RequestHeaders.getOrDefault("Auth", new ArrayList<>()).get(0);
 
-            if (ValidateToken(token)) {
-                return token;
-            } else {
-                throw new BadRequest("Auth: Cannot validate: " + token);
-            }
+            ValidateToken(token);
+            return token;
+
 
         } else {
             throw new BadRequest("Header doesnt contain Auth token");

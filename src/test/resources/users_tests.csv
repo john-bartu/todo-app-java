@@ -5,3 +5,9 @@ jsonData|code
 {"username": "janKowalski4", "password": "am!sK#1234"}|201
 {"username": "test", "password": "test"}|201
 {"username": "test", "password": "test"}|409
+{"password": "132123123"}|400
+{"username": "785678567"}|400
+{"password": ""}|400
+{"username": ""}|400
+{}|400
+{"kuba thinks": "ze to nie doesnt work"}|400

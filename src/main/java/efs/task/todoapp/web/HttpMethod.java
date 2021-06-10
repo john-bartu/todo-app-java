@@ -1,6 +1,6 @@
 package efs.task.todoapp.web;
 
-public enum HttpMethode {
+public enum HttpMethod {
     PUT,
     GET,
     POST,

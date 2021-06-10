@@ -1,6 +1,6 @@
 package efs.task.todoapp.repository;
 
-import efs.task.todoapp.service.exceptions.BadRequest;
+import efs.task.todoapp.service.exceptions.BadRequestException;
 
 import java.util.Arrays;
 import java.util.Base64;
@@ -15,23 +15,23 @@ public class UserEntity {
         this.password = password;
     }
 
-    public static void Validate(UserEntity userEntity) throws BadRequest {
+    public static void Validate(UserEntity userEntity) throws BadRequestException {
 
         if (userEntity == null) {
-            throw new BadRequest("Validation: UserEntity is null");
+            throw new BadRequestException("Validation: UserEntity is null");
         }
 
         if (userEntity.getUsername() == null || userEntity.getUsername().equals("")) {
-            throw new BadRequest("Validation: Username not provided");
+            throw new BadRequestException("Validation: Username not provided");
         }
 
         if (userEntity.getPassword() == null || userEntity.getPassword().equals("")) {
-            throw new BadRequest("Validation: Password not provided");
+            throw new BadRequestException("Validation: Password not provided");
         }
 
     }
 
-    public static void checkToken(String token) throws BadRequest {
+    public static void checkToken(String token) throws BadRequestException {
 
         List<String> test = Arrays.asList(token.split("[\\s:]+"));
 
@@ -40,7 +40,7 @@ public class UserEntity {
             Base64.getDecoder().decode(test.get(1));
 
         } catch (IllegalArgumentException e) {
-            throw new BadRequest("Token is not a token");
+            throw new BadRequestException("Token is not a token");
         }
 
     }

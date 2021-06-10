@@ -6,7 +6,7 @@ import java.util.Base64;
 import java.util.UUID;
 
 public class TestUtils {
-    public static String creteToken(String username, String password) {
+    public static String createToken(String username, String password) {
         return Base64.getEncoder().encodeToString(username.getBytes()) +
                 ":" +
                 Base64.getEncoder().encodeToString(password.getBytes());
@@ -18,7 +18,7 @@ public class TestUtils {
 
 
     public static String creteRandomToken() {
-        return creteToken(randomLogin(), randomLogin());
+        return createToken(randomLogin(), randomLogin());
     }
 
 

@@ -10,13 +10,13 @@ public enum HttpCode {
     CONFLICT_409(409),
     INTERNAL_SERVER_ERROR_500(500);
 
-    int rCode;
+    int responseCode;
 
     HttpCode(int code) {
-        rCode = code;
+        responseCode = code;
     }
 
-    public int getrCode() {
-        return rCode;
+    public int getResponseCode() {
+        return responseCode;
     }
 }

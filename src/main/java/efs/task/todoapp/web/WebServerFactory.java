@@ -2,19 +2,20 @@ package efs.task.todoapp.web;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
-import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import efs.task.todoapp.repository.TaskEntity;
+import efs.task.todoapp.repository.TaskRepository;
 import efs.task.todoapp.repository.UserEntity;
+import efs.task.todoapp.repository.UserRepository;
 import efs.task.todoapp.service.ToDoService;
 import efs.task.todoapp.service.exceptions.*;
+import efs.task.todoapp.web.annotations.MethodEndPoint;
+import efs.task.todoapp.web.annotations.URIEndPoint;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
 import java.util.*;
 import java.util.logging.Logger;
@@ -23,7 +24,7 @@ import java.util.regex.Pattern;
 
 public class WebServerFactory {
     private static final Logger LOGGER = Logger.getLogger(WebServerFactory.class.getName());
-    private static final ToDoService database = new ToDoService();
+    private static final ToDoService database = new ToDoService(new UserRepository(), new TaskRepository());
 
     public static HttpServer createServer() throws IOException {
         HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
@@ -31,7 +32,9 @@ public class WebServerFactory {
 
         Class<?>[] endpointClasses = WebServerFactory.class.getDeclaredClasses();
 
+
         LOGGER.info("Registering endpoints...");
+
 
         for (Class<?> endpointClass : endpointClasses) {
             URIEndPoint annotation = endpointClass.getAnnotation(URIEndPoint.class);
@@ -59,116 +62,21 @@ public class WebServerFactory {
         return server;
     }
 
-    static class EndpointDefault implements HttpHandler {
-        final HashMap<HttpMethode, Method> methodHashMap = new HashMap<>() {
-            @Override
-            public String toString() {
-
-                StringBuilder stringBuilder = new StringBuilder();
-
-                this.forEach((methode, method) -> {
-                    String response = String.format("\t [%10s] -> %s\n", methode.toString(), method.getName());
-                    stringBuilder.append(response);
-                });
-
-                return stringBuilder.toString();
-            }
-        };
-
-
-        void InitMethodEndpoints(Object o) {
-
-            Method[] endpointClasses = o.getClass().getDeclaredMethods();
-            for (Method endpointMethode : endpointClasses) {
-                MethodEndPoint annotation = endpointMethode.getAnnotation(MethodEndPoint.class);
-
-                if (annotation != null) {
-                    HttpMethode method = annotation.method();
-                    methodHashMap.put(method, endpointMethode);
-                }
-            }
-
-            LOGGER.info("- New Endpoint: " + o.getClass().getName() + "\n" + methodHashMap);
-        }
-
-        @Override
-        public void handle(HttpExchange httpExchange) throws IOException {
-
-            Request request = new Request(
-                    httpExchange.getRequestURI().toString(),
-                    httpExchange.getRequestMethod(),
-                    httpExchange.getRequestHeaders(),
-                    new String(httpExchange.getRequestBody().readAllBytes())
-            );
-            LOGGER.info("-> Handling client request:\n"
-                    + "\t    URI: " + request.getRequestURI() + "\t[" + request.getRequestMethod() + "]\n"
-                    + "\tHEADERS: " + request.getRequestHeaders().keySet() + "\n"
-                    + "\t   BODY: " + request.getRequestBody() + "\n"
-            );
-
-            HttpMethode requestMethode = HttpMethode.valueOf(request.getRequestMethod());
-            HttpResponse httpResponse = defaultHandle(request);
-            try {
-                if (methodHashMap.containsKey(requestMethode)) {
-                    LOGGER.info("Method found " + methodHashMap.get(requestMethode).getName());
-                    httpResponse = (HttpResponse) methodHashMap.get(requestMethode).invoke(null, request);
-                }
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            } catch (InvocationTargetException e) {
-                try {
-                    throw e.getCause();
-                } catch (JsonSyntaxException jsonSyntaxException) {
-                    httpResponse = new HttpResponse().toJson(HttpCode.BAD_REQUEST_400, "JSON Parse error" + e.getMessage());
-                } catch (BadRequest badRequest) {
-                    httpResponse = new HttpResponse().toJson(HttpCode.BAD_REQUEST_400, badRequest.getMessage());
-                } catch (Unauthorized unauthorized) {
-                    httpResponse = new HttpResponse().toJson(HttpCode.UNAUTHORIZED_401, unauthorized.getMessage());
-                } catch (Conflict conflict) {
-                    httpResponse = new HttpResponse().toJson(HttpCode.CONFLICT_409, conflict.getMessage());
-                } catch (NotFound notFound) {
-                    httpResponse = new HttpResponse().toJson(HttpCode.NOT_FOUND_404, notFound.getMessage());
-                } catch (Forbidden forbidden) {
-                    httpResponse = new HttpResponse().toJson(HttpCode.FORBIDDEN_403, forbidden.getMessage());
-                } catch (Throwable throwable) {
-                    throwable.printStackTrace();
-                    httpResponse = new HttpResponse().toJson(HttpCode.INTERNAL_SERVER_ERROR_500, throwable.getMessage());
-                }
-            }
-
-            LOGGER.info("<- Server response:\n"
-                    + "\t   CODE: [" + httpResponse.httpCode.rCode + "] \n"
-                    + "\t   BODY: " + httpResponse.httpResponse + "\n");
-            httpExchange.sendResponseHeaders(httpResponse.httpCode.rCode, httpResponse.getSize());
-            httpExchange.getResponseHeaders().add("Content-type", "application/json");
-            OutputStream os = httpExchange.getResponseBody();
-            os.write(httpResponse.httpResponse.getBytes());
-            os.close();
-
-            LOGGER.info("-------------------------------------------\n\n");
-        }
-
-        HttpResponse defaultHandle(Request t) {
-            return new HttpResponse().toJson(HttpCode.NOT_FOUND_404, "For URI: " + t.getRequestURI());
-        }
-
-
-    }
-
     @SuppressWarnings("unused")
     @URIEndPoint(path = "/todo/user")
     static class TodoUserEndpoint extends EndpointDefault {
+
         TodoUserEndpoint() {
-            InitMethodEndpoints(this);
+            initMethodEndpoints(this);
         }
 
-        @MethodEndPoint(method = HttpMethode.POST)
-        static HttpResponse userHandlePost(Request t) throws BadRequest, Conflict {
+        @MethodEndPoint(method = HttpMethod.POST)
+        static HttpResponse userHandlePost(Request t) throws BadRequestException, ConflictException {
 
             UserEntity newUser = new Gson().fromJson(t.getRequestBody(), UserEntity.class);
             LOGGER.info("Received user: " + new Gson().toJson(newUser));
             UserEntity.Validate(newUser);
-            database.AddUser(newUser);
+            database.addUser(newUser);
             return new HttpResponse().toJson(HttpCode.CREATED_201, "User added");
 
         }
@@ -180,11 +88,11 @@ public class WebServerFactory {
     static class TodoTasksEndpoint extends EndpointDefault {
 
         TodoTasksEndpoint() {
-            InitMethodEndpoints(this);
+            initMethodEndpoints(this);
         }
 
-        @MethodEndPoint(method = HttpMethode.GET)
-        static HttpResponse taskHandleGet(Request t) throws BadRequest, Unauthorized, JsonSyntaxException {
+        @MethodEndPoint(method = HttpMethod.GET)
+        static HttpResponse taskHandleGet(Request t) throws BadRequestException, UnauthorizedException, JsonSyntaxException {
 
             String token = t.getHeaderAuth();
 
@@ -199,15 +107,15 @@ public class WebServerFactory {
 
         }
 
-        @MethodEndPoint(method = HttpMethode.POST)
-        static HttpResponse taskHandlePost(Request t) throws BadRequest, Unauthorized, JsonSyntaxException {
+        @MethodEndPoint(method = HttpMethod.POST)
+        static HttpResponse taskHandlePost(Request t) throws BadRequestException, UnauthorizedException, JsonSyntaxException {
 
             TaskEntity newTask = new Gson().fromJson(t.getRequestBody(), TaskEntity.class);
 
             LOGGER.info("Received task: " + new Gson().toJson(newTask));
             String token = t.getHeaderAuth();
 
-            TaskEntity.Validate(newTask);
+            TaskEntity.validate(newTask);
 
             String username = database.authenticate(token);
 
@@ -217,12 +125,12 @@ public class WebServerFactory {
 
         }
 
-        @MethodEndPoint(method = HttpMethode.PUT)
+        @MethodEndPoint(method = HttpMethod.PUT)
         static HttpResponse taskHandlePut(Request t) throws JsonSyntaxException {
             return new HttpResponse().toJson(HttpCode.BAD_REQUEST_400, "");
         }
 
-        @MethodEndPoint(method = HttpMethode.DELETE)
+        @MethodEndPoint(method = HttpMethod.DELETE)
         static HttpResponse taskHandleDelete(Request t) throws JsonSyntaxException {
             return new HttpResponse().toJson(HttpCode.BAD_REQUEST_400, "");
         }
@@ -235,25 +143,25 @@ public class WebServerFactory {
         static Pattern pattern = Pattern.compile("^/todo/task/([A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{12})$");
 
         TodoTaskEndpoint() {
-            InitMethodEndpoints(this);
+            initMethodEndpoints(this);
         }
 
-        static UUID GetUuidFromUrl(String uri) throws BadRequest {
+        static UUID GetUuidFromUrl(String uri) throws BadRequestException {
             Matcher matcher = pattern.matcher(uri);
 
             if (matcher.matches()) {
                 return UUID.fromString(matcher.group(1));
             } else {
-                throw new BadRequest("Task UUID not found in URI");
+                throw new BadRequestException("Task UUID not found in URI");
             }
         }
 
-        @MethodEndPoint(method = HttpMethode.GET)
-        static HttpResponse taskHandleGet(Request t) throws BadRequest, Unauthorized, JsonSyntaxException {
+        @MethodEndPoint(method = HttpMethod.GET)
+        static HttpResponse taskHandleGet(Request t) throws BadRequestException, UnauthorizedException, JsonSyntaxException {
 
             String token = t.getHeaderAuth();
 
-            UUID uuid = GetUuidFromUrl(t.RequestURI);
+            UUID uuid = GetUuidFromUrl(t.requestURI);
 
             String username = database.authenticate(token);
             if (!database.isTaskExists(uuid))
@@ -269,18 +177,16 @@ public class WebServerFactory {
 
         }
 
-        @MethodEndPoint(method = HttpMethode.PUT)
-        static HttpResponse taskHandlePut(Request t) throws BadRequest, Unauthorized, JsonSyntaxException, Forbidden, NotFound {
+        @MethodEndPoint(method = HttpMethod.PUT)
+        static HttpResponse taskHandlePut(Request t) throws BadRequestException, UnauthorizedException, JsonSyntaxException, ForbiddenException, NotFoundException {
 
             String token = t.getHeaderAuth();
 
-            UUID uuid = GetUuidFromUrl(t.RequestURI);
+            UUID uuid = GetUuidFromUrl(t.requestURI);
 
             TaskEntity updateTask = new Gson().fromJson(t.getRequestBody(), TaskEntity.class);
-
             LOGGER.info("Received task to update: " + new Gson().toJson(updateTask));
-
-            TaskEntity.Validate(updateTask);
+            TaskEntity.validate(updateTask);
 
             String username = database.authenticate(token);
             LOGGER.info("USER: " + username);
@@ -293,12 +199,12 @@ public class WebServerFactory {
 
         }
 
-        @MethodEndPoint(method = HttpMethode.DELETE)
-        static HttpResponse taskHandleDelete(Request t) throws BadRequest, Unauthorized, JsonSyntaxException, Forbidden, NotFound {
+        @MethodEndPoint(method = HttpMethod.DELETE)
+        static HttpResponse taskHandleDelete(Request t) throws BadRequestException, UnauthorizedException, JsonSyntaxException, ForbiddenException, NotFoundException {
 
             String token = t.getHeaderAuth();
 
-            UUID uuid = GetUuidFromUrl(t.RequestURI);
+            UUID uuid = GetUuidFromUrl(t.requestURI);
 
             String username = database.authenticate(token);
 

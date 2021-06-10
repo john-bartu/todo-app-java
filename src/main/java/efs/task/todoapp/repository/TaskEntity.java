@@ -1,6 +1,6 @@
 package efs.task.todoapp.repository;
 
-import efs.task.todoapp.service.exceptions.BadRequest;
+import efs.task.todoapp.service.exceptions.BadRequestException;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -17,15 +17,15 @@ public class TaskEntity {
         this.due = due;
     }
 
-    public static void Validate(TaskEntity taskEntity) throws BadRequest {
+    public static void validate(TaskEntity taskEntity) throws BadRequestException {
 
         if (taskEntity == null) {
-            throw new BadRequest("Validation: Task is null");
+            throw new BadRequestException("Validation: Task is null");
         }
 
 
         if (taskEntity.getDescription() == null || taskEntity.getDescription().equals("")) {
-            throw new BadRequest("Validation: Description not provided");
+            throw new BadRequestException("Validation: Description not provided");
         }
 
         if (taskEntity.due != null) {
@@ -34,7 +34,7 @@ public class TaskEntity {
             try {
                 sdfrmt.parse(taskEntity.due);
             } catch (ParseException e) {
-                throw new BadRequest(taskEntity.due + " is Invalid Date format");
+                throw new BadRequestException(taskEntity.due + " is Invalid Date format");
             }
 
         }

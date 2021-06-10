@@ -16,7 +16,7 @@ import java.net.http.HttpRequest;
 import java.util.Arrays;
 import java.util.List;
 
-import static efs.task.todoapp.util.TestUtils.creteToken;
+import static efs.task.todoapp.util.TestUtils.createToken;
 import static java.net.http.HttpResponse.BodyHandlers.ofString;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -51,9 +51,9 @@ class TaskEndpointTest {
         var httpResponseUser = httpClient.send(createUserRequest, ofString());
 
         //then
-        assertThat(httpResponseUser.statusCode()).as("Response create user").isEqualTo(HttpCode.CREATED_201.getrCode());
+        assertThat(httpResponseUser.statusCode()).as("Response create user").isEqualTo(HttpCode.CREATED_201.getResponseCode());
 
-        String token = creteToken(username, password);
+        String token = createToken(username, password);
 
         var createTaskRequest = HttpRequest.newBuilder()
                 .uri(URI.create(TODO_APP_PATH + "/task"))
@@ -66,7 +66,7 @@ class TaskEndpointTest {
         var httpResponseTask = httpClient.send(createTaskRequest, ofString());
 
         //then
-        assertThat(httpResponseTask.statusCode()).as("Response create task for user").isEqualTo(HttpCode.CREATED_201.getrCode());
+        assertThat(httpResponseTask.statusCode()).as("Response create task for user").isEqualTo(HttpCode.CREATED_201.getResponseCode());
 
 
     }
@@ -90,9 +90,9 @@ class TaskEndpointTest {
         var httpResponseUser = httpClient.send(createUserRequest, ofString());
 
         //then
-        assertThat(httpResponseUser.statusCode()).as("Response create user").isEqualTo(HttpCode.CREATED_201.getrCode());
+        assertThat(httpResponseUser.statusCode()).as("Response create user").isEqualTo(HttpCode.CREATED_201.getResponseCode());
 
-        String token = creteToken(username, password);
+        String token = createToken(username, password);
 
         System.out.println("HASH: " + token);
 
@@ -108,7 +108,7 @@ class TaskEndpointTest {
         var httpResponseTask = httpClient.send(createTaskRequest, ofString());
 
         //then
-        assertThat(httpResponseTask.statusCode()).as("Response create task for user").isEqualTo(HttpCode.BAD_REQUEST_400.getrCode());
+        assertThat(httpResponseTask.statusCode()).as("Response create task for user").isEqualTo(HttpCode.BAD_REQUEST_400.getResponseCode());
 
 
     }
@@ -120,7 +120,7 @@ class TaskEndpointTest {
 
         String username = "this";
         String password = "not_exist";
-        String token = creteToken(username, password);
+        String token = createToken(username, password);
 
 
         var listTaskRequest = HttpRequest.newBuilder()
@@ -134,7 +134,7 @@ class TaskEndpointTest {
         var httpResponseTask = httpClient.send(listTaskRequest, ofString());
 
         //then
-        assertThat(httpResponseTask.statusCode()).as("Response create task for user").isEqualTo(HttpCode.UNAUTHORIZED_401.getrCode());
+        assertThat(httpResponseTask.statusCode()).as("Response create task for user").isEqualTo(HttpCode.UNAUTHORIZED_401.getResponseCode());
     }
 
     @Test
@@ -151,7 +151,7 @@ class TaskEndpointTest {
         var httpResponseTask = httpClient.send(listTaskRequest, ofString());
 
         //then
-        assertThat(httpResponseTask.statusCode()).as("Response create task for user").isEqualTo(HttpCode.BAD_REQUEST_400.getrCode());
+        assertThat(httpResponseTask.statusCode()).as("Response create task for user").isEqualTo(HttpCode.BAD_REQUEST_400.getResponseCode());
     }
 
 
@@ -161,7 +161,7 @@ class TaskEndpointTest {
 
         String username = "user";
         String password = "password";
-        String token = creteToken(username, password);
+        String token = createToken(username, password);
 
         System.out.println("HASH: " + token);
 
@@ -177,7 +177,7 @@ class TaskEndpointTest {
         var httpResponseTask = httpClient.send(listTaskRequest, ofString());
 
         //then
-        assertThat(httpResponseTask.statusCode()).as("Response create task for user").isEqualTo(HttpCode.OK_200.getrCode());
+        assertThat(httpResponseTask.statusCode()).as("Response create task for user").isEqualTo(HttpCode.OK_200.getResponseCode());
     }
 
     @Test
@@ -186,7 +186,7 @@ class TaskEndpointTest {
 
         String username = "user";
         String password = "password";
-        String token = creteToken(username, password);
+        String token = createToken(username, password);
 
         System.out.println("HASH: " + token);
 
@@ -202,7 +202,7 @@ class TaskEndpointTest {
         var httpResponseTaskList = httpClient.send(listTaskRequest, ofString());
 
         //then
-        assertThat(httpResponseTaskList.statusCode()).as("Response create task for user").isEqualTo(HttpCode.OK_200.getrCode());
+        assertThat(httpResponseTaskList.statusCode()).as("Response create task for user").isEqualTo(HttpCode.OK_200.getResponseCode());
 
         TaskEntity[] taskEntities = new Gson().fromJson(httpResponseTaskList.body(), TaskEntity[].class);
         List<TaskEntity> taskEntityList = Arrays.asList(taskEntities);
@@ -217,7 +217,7 @@ class TaskEndpointTest {
 
         //when
         var httpResponseTask = httpClient.send(getTaskRequest, ofString());
-        assertThat(httpResponseTask.statusCode()).as("Response get task").isEqualTo(HttpCode.OK_200.getrCode());
+        assertThat(httpResponseTask.statusCode()).as("Response get task").isEqualTo(HttpCode.OK_200.getResponseCode());
     }
 
 
@@ -227,7 +227,7 @@ class TaskEndpointTest {
 
         String username = "user";
         String password = "password";
-        String token = creteToken(username, password);
+        String token = createToken(username, password);
 
         var listTaskRequest = HttpRequest.newBuilder()
                 .uri(URI.create(TODO_APP_PATH + "/task"))
@@ -240,7 +240,7 @@ class TaskEndpointTest {
         var httpResponseTaskList = httpClient.send(listTaskRequest, ofString());
 
         //then
-        assertThat(httpResponseTaskList.statusCode()).as("Response create task for user").isEqualTo(HttpCode.OK_200.getrCode());
+        assertThat(httpResponseTaskList.statusCode()).as("Response create task for user").isEqualTo(HttpCode.OK_200.getResponseCode());
 
         TaskEntity[] taskEntities = new Gson().fromJson(httpResponseTaskList.body(), TaskEntity[].class);
         List<TaskEntity> taskEntityList = Arrays.asList(taskEntities);
@@ -255,7 +255,7 @@ class TaskEndpointTest {
 
         //when
         var httpResponseDeleteTask = httpClient.send(deleteTaskRequest, ofString());
-        assertThat(httpResponseDeleteTask.statusCode()).as("Response get task").isEqualTo(HttpCode.OK_200.getrCode());
+        assertThat(httpResponseDeleteTask.statusCode()).as("Response get task").isEqualTo(HttpCode.OK_200.getResponseCode());
 
 
         var getTaskRequest = HttpRequest.newBuilder()
@@ -267,7 +267,7 @@ class TaskEndpointTest {
 
         //when
         var httpResponseTask = httpClient.send(getTaskRequest, ofString());
-        assertThat(httpResponseTask.statusCode()).as("Response get task").isEqualTo(HttpCode.NOT_FOUND_404.getrCode());
+        assertThat(httpResponseTask.statusCode()).as("Response get task").isEqualTo(HttpCode.NOT_FOUND_404.getResponseCode());
     }
 
     @Test
@@ -288,9 +288,9 @@ class TaskEndpointTest {
         var httpResponseUser = httpClient.send(createUserRequest, ofString());
 
         //then
-        assertThat(httpResponseUser.statusCode()).as("Response create user").isEqualTo(HttpCode.CREATED_201.getrCode());
+        assertThat(httpResponseUser.statusCode()).as("Response create user").isEqualTo(HttpCode.CREATED_201.getResponseCode());
 
-        String token = creteToken(username, password);
+        String token = createToken(username, password);
 
         System.out.println("HASH: " + token);
 
@@ -305,7 +305,7 @@ class TaskEndpointTest {
 
             var httpResponseTask = httpClient.send(createTaskRequest, ofString());
             //then
-            assertThat(httpResponseTask.statusCode()).as("Response create task for user").isEqualTo(HttpCode.CREATED_201.getrCode());
+            assertThat(httpResponseTask.statusCode()).as("Response create task for user").isEqualTo(HttpCode.CREATED_201.getResponseCode());
 
 
         }
@@ -320,7 +320,7 @@ class TaskEndpointTest {
         var httpResponseTaskList = httpClient.send(listTaskRequest, ofString());
 
         //then
-        assertThat(httpResponseTaskList.statusCode()).as("Response create task for user").isEqualTo(HttpCode.OK_200.getrCode());
+        assertThat(httpResponseTaskList.statusCode()).as("Response create task for user").isEqualTo(HttpCode.OK_200.getResponseCode());
 
         TaskEntity[] taskEntities = new Gson().fromJson(httpResponseTaskList.body(), TaskEntity[].class);
         List<TaskEntity> taskEntityList = Arrays.asList(taskEntities);
